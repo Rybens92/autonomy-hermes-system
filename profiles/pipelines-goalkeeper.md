@@ -11,13 +11,12 @@ Global goal achievement check. After all pipeline phases complete, this profile 
 - `web` — verify external references if needed
 
 ## Key Behaviors
-1. Reads GOAL.md — what was the user's goal?
-2. Reads LOG.md — what was actually done?
-3. Reads STATUS.md — what's the current state?
-4. Verifies artifacts against specification
-5. Outputs SCORE 0-10 + VERDICT (GOAL_ACHIEVED | IN_PROGRESS | FAILED) + EVIDENCE
-6. If incomplete → lists exact remaining work
-7. Must call `kanban_complete` after assessment
+1. `kanban_show` — read the current task
+2. Evaluate whether the goal from GOAL.md is achieved, based on examining project artifacts and evidence
+3. Output verdict: **DONE** (goal achieved) or **CONTINUE** (more work needed, with specific feedback)
+4. Call `kanban_complete` with the verdict. Must NOT exit without calling it.
+
+> **Note:** Step 2 implicitly involves reading GOAL.md, LOG.md, STATUS.md, and project files. The workflow is intentionally simpler than the old process — the goalkeeper reads the task context, evaluates against the goal, and issues a binary DONE/CONTINUE verdict.
 
 ## Modification Notes
 - The verdict structure can be extended with custom statuses (e.g., PARTIALLY_ACHIEVED)

@@ -1,14 +1,15 @@
 # aa-orchestrator
 
 ## Role
-Central decision-maker. Reads system state, creates kanban cards for workers, manages pipeline flow. Does NOT execute code or manage files beyond its own state directory.
+Central decision-maker. Reads system state, creates kanban cards for workers, manages pipeline flow. Has full tool access and routinely runs shell scripts, reads/writes state files, manages cron jobs, and creates kanban cards.
 
 ## Model Tier
-**STRONGEST reasoning** — this profile consumes the most expensive tokens. Use your best available reasoning model. Configured to max 30 turns with `reasoning_effort: high`.
+**STRONGEST reasoning** — this profile consumes the most expensive tokens. Use your best available reasoning model. Configured to max 250 turns with `reasoning_effort: xhigh`.
 
 ## Toolsets
-- `file` — read/write state files (GOAL.md, STATUS.md, LOG.md, HELP_NEEDED.md)
-- `kanban` — create/edit/list tasks on the kanban board
+- `hermes-cli` — comprehensive tool access: terminal, file, kanban, web, code_execution, cronjob management, browser, delegation, memory, skills, and more. This is a superset giving access to ALL tools.
+
+> **Note:** The orchestrator needs `hermes-cli` (full toolset) because it runs shell scripts (state_context.sh, cleanup.sh, etc.), reads/writes state files, manages cron jobs, and creates kanban cards. A restricted toolset would prevent it from functioning.
 
 ## Key Behaviors
 
