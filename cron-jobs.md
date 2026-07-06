@@ -2,6 +2,8 @@
 
 All 8 cron jobs run under the `aa-orchestrator` profile. The gateway scheduler fires them automatically.
 
+> **Note on profile naming**: The `aa-` prefix is the documented convention for fresh installs. On the creator's machine, these jobs actually run under the `autonomous-orchestrator` profile (no `aa-` prefix), because cron jobs are created via `hermes cron create` under whichever profile runs the command. Adjust the profile name in your setup to match your actual Hermes profile.
+
 ## Schedule Rationale
 
 The schedule is designed around an **hourly orchestration tick** — the orchestrator evaluates the system state once per hour. Supporting jobs are offset to run between orchestration ticks.
