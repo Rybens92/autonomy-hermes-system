@@ -65,7 +65,7 @@ When all goals are complete, the system doesn't just sit idle. It:
 - **Watchdog** — alerts you when the agent needs help
 - **Milestone reporter** — notifies you on phase transitions
 - **Cleanup agent** — removes stale tasks, old temp files
-- **Daily research** — finds relevant papers/posts based on your interests
+- **Daily research** — searches the web for content matching your interests, writes summaries to `research/daily/`, creates actionable proposals to `research/proposals/`, and delivers them to you at 18:30 via your messaging platform
 
 ## Quick Start
 

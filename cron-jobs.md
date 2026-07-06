@@ -21,16 +21,16 @@ every 10 min: ping-human-watchdog     (no-agent, 0 tokens) — monitor for help 
 
 ## Job Details
 
-| Job | Schedule | Type | Tokens/tick | Deliver | Description |
-|-----|----------|------|-------------|---------|-------------|
-| orchestrator-heartbeat | `0 * * * *` | LLM | ~700 | local | Main decision loop — evaluates state, creates kanban cards |
-| memory-observer | `5 * * * *` | LLM | ~500 | local | Captures system behavior patterns as observations |
-| memory-consolidator | `0 */12 * * *` | LLM | ~400 | local | Merges raw observations into topic files |
-| ping-human-watchdog | `*/10 * * * *` | no-agent | **0** | messaging | Monitors HELP_NEEDED.md — alerts user |
-| milestone-reporter | `10 * * * *` | no-agent | **0** | messaging | Reports STATUS.md changes (phase transitions) |
-| cleanup-agent | `0 */6 * * *` | no-agent | **0** | messaging | Archives done tasks, removes stale files |
-| daily-research | `0 18 * * *` | LLM | ~2000 | local | Finds relevant papers/posts based on user interests |
-| research-proposal-reporter | `30 18 * * *` | no-agent | **0** | messaging | Delivers research proposals to user |
+| Job | Schedule | Type | Tokens/tick | Deliver | Script | Description |
+|-----|----------|------|-------------|---------|--------|-------------|
+| orchestrator-heartbeat | `0 * * * *` | LLM | ~700 | local | `state_context.sh` | Main decision loop — evaluates state, creates kanban cards |
+| memory-observer | `5 * * * *` | LLM | ~500 | local | `observer_context.sh` | Captures system behavior patterns as observations |
+| memory-consolidator | `0 */12 * * *` | LLM | ~400 | local | `consolidator_context.sh` | Merges raw observations into topic files |
+| ping-human-watchdog | `*/10 * * * *` | no-agent | **0** | messaging | `check_help.sh` | Monitors HELP_NEEDED.md — alerts user |
+| milestone-reporter | `10 * * * *` | no-agent | **0** | messaging | `milestone_reporter.sh` | Reports STATUS.md changes (phase transitions) |
+| cleanup-agent | `0 */6 * * *` | no-agent | **0** | messaging | `cleanup.sh` | Archives done tasks, removes stale files |
+| daily-research | `0 18 * * *` | LLM | ~2000 | local | `research_context.sh` | Searches web for content matching user interests, writes summaries + proposals |
+| research-proposal-reporter | `30 18 * * *` | no-agent | **0** | messaging | `research_proposal_reporter.sh` | Delivers today's research proposals to user |
 
 ## Token Budget
 
