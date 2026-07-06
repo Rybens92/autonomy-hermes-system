@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Autonomy Hermes System — AI Agent Installation Guide</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --fg: #c9d1d9;
+    --border: #30363d;
+    --code-bg: #161b22;
+    --link: #58a6ff;
+    --phase: #f0883e;
+    --cmd: #7ee787;
+    --warn: #d29922;
+    --err: #f85149;
+    --ok: #3fb950;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px; line-height: 1.6; max-width: 960px;
+    margin: 0 auto; padding: 40px 24px;
+  }
+  h1 { color: var(--fg); font-size: 2em; margin: 0 0 8px 0; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+  h2 { color: var(--phase); font-size: 1.4em; margin: 40px 0 12px 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { color: var(--fg); font-size: 1.1em; margin: 24px 0 8px 0; }
+  p, li { margin: 0 0 12px 0; }
+  ul, ol { margin: 0 0 16px 0; padding-left: 24px; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; overflow-x: auto; margin: 0 0 16px 0; font-size: 13px; line-height: 1.5; }
+  pre code { background: none; padding: 0; }
+  .cmd { color: var(--cmd); }
+  .warn { color: var(--warn); font-weight: bold; }
+  .err { color: var(--err); }
+  .ok { color: var(--ok); }
+  .decision { background: #1a1d21; border-left: 3px solid var(--phase); padding: 12px 18px; margin: 16px 0; border-radius: 0 6px 6px 0; }
+  .decision::before { content: "🤔 DECISION TREE: "; color: var(--phase); font-weight: bold; }
+  .check { color: var(--ok); }
+  .cross { color: var(--err); }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+  th { background: var(--code-bg); }
+  .step-num { display: inline-block; background: var(--phase); color: #000; border-radius: 50%; width: 22px; height: 22px; text-align: center; font-size: 12px; font-weight: bold; line-height: 22px; margin-right: 6px; }
+</style>
+</head>
+<body>
+
+<h1>🔄 Autonomy Hermes System<br><small style="font-size:0.5em;color:#8b949e;">AI Agent Installation Guide — v1.0</small></h1>
+
+<p><strong>Target audience:</strong> AI agents (Hermes, Claude Code, Codex, OpenCode) that need to replicate this autonomous agent system on a user's machine.<br>
+<strong>Goal:</strong> Install 8 specialized profiles, 8 cron jobs, 8 scripts, and a state directory — without breaking anything the user already has.</p>
+
+<div class="decision">
+This guide is a <strong>decision tree</strong>, not a recipe. At every step, you MUST discover what the user already has and adapt. Never assume. Never overwrite.
+</div>
+
+<div class="decision" style="border-left-color: var(--warn);">
+<strong>⚠️ WHEN IN DOUBT, ASK THE USER</strong><br>
+This is the most important rule in this guide. You are not expected to guess.<br><br>
+<strong>Ask the user when:</strong>
+<ul>
+  <li>You can't determine which model/provider to use for a tier</li>
+  <li>A profile name conflicts and you need an alternative</li>
+  <li>You're unsure whether a feature matches what the user wants</li>
+  <li>The user's setup is unconventional (e.g., custom providers, unusual paths)</li>
+  <li>You find existing cron jobs that might conflict</li>
+  <li>Any decision has multiple reasonable options with different trade-offs</li>
+</ul>
+<strong>How to ask (be specific):</strong>
+<ul>
+  <li>❌ "What should I do?"</li>
+  <li>✅ "I need to choose between X and Y for the orchestrator model. X = faster but dumber. Y = slower but smarter. Which do you prefer?"</li>
+  <li>Always present <strong>concrete alternatives</strong> with trade-offs explained</li>
+</ul>
+</div>
+
+<h2>Phase 0 — Discovery</h2>
+<p>Before creating anything, discover the user's environment. This determines every subsequent decision.</p>
+
+<h3>0.1 Profile discovery</h3>
+<pre><code>hermes profile list
+# Expected output: list of profile names
+# Store this list — you will check against it for naming conflicts</code></pre>
+
+<div class="decision">
+IF any profile name starts with "aa-" (e.g., aa-orchestrator, aa-worker):
+  → This system may already be partially installed.
+  → Ask user: "I see aa-* profiles. Are these from a previous installation? Should I overwrite or skip?"
+  → If skip: create profiles with alternative prefix (e.g., "a2-")
+  → If overwrite: proceed, but warn user
+</div>
+
+<h3>0.2 Provider and model discovery</h3>
+<pre><code>hermes config list
+# Identify: provider names, available models, API modes
+#
+# Key: which provider has the STRONGEST reasoning model?
+# Key: which provider has the CHEAPEST capable model?
+# These map to:
+#   STRONGEST → aa-orchestrator, aa-thinker
+#   CHEAPEST  → aa-worker
+#   BALANCED  → aa-reviewer, aa-human-taste, aa-verifier, aa-escalator, aa-goalkeeper</code></pre>
+
+<div class="decision">
+<strong>Provider mapping logic — discover, don't assume:</strong>
+<p>The project creator uses <strong>GLM-5.2 via z.ai</strong> for orchestration and <strong>DeepSeek v4 (Flash for workers, Pro for review/taste)</strong> for execution. But your user almost certainly has different providers configured.</p>
+
+<p><strong>How to choose:</strong></p>
+<ol>
+  <li>Run <code>hermes tools list</code> to see configured providers and models</li>
+  <li>STRONGEST tier (orchestrator, thinker): pick the provider with the best reasoning model</li>
+  <li>CHEAPEST tier (worker): pick the provider with the cheapest capable model</li>
+  <li>BALANCED tier (reviewer, taste, verifier, escalator, goalkeeper): pick a mid-tier model</li>
+  <li>IF you can't determine which is best → <strong>ASK the user</strong>:
+    "I need to choose models for the autonomous system. Your options:
+    STRONGEST (orchestrator): [list providers with good reasoning]
+    CHEAPEST (worker): [list providers with cheap capable models]
+    BALANCED (review/taste): [list remaining options]
+    Which provider/model for each tier?"</li>
+  <li>IF only ONE provider is configured → use it for all tiers, picking the strongest available model for STRONGEST, cheapest for CHEAPEST</li>
+</ol>
+</div>
+
+<h3>0.3 Messaging platform discovery</h3>
+<pre><code>hermes channels
+# OR
+hermes config get gateway.channels
+# Identify: which platform does the user use?
+# Common: telegram, discord, slack, whatsapp
+# Store the HOME_CHANNEL or primary channel ID</code></pre>
+
+<div class="decision">
+IF a messaging platform is configured:
+  → Set <code>--deliver &lt;platform&gt;:&lt;chat_id&gt;</code> for watchdog and milestone-report cron jobs
+  → Store platform type + chat_id
+ELSE:
+  → Set <code>--deliver local</code> for ALL cron jobs
+  → Add warning in STATUS.md: "No messaging platform configured. Check ~/autonomous-agent/STATUS.md manually."
+  → Still create the system — user can configure messaging later
+</div>
+
+<h3>0.4 Gateway check</h3>
+<pre><code>systemctl --user is-active hermes-gateway-*
+# OR
+hermes gateway status
+# Must be active. Cron jobs depend on the gateway for scheduling.</code></pre>
+
+<h3>0.5 Existing cron job discovery</h3>
+<pre><code>hermes cron list
+# Store the list. You will check against it in Phase 4.</code></pre>
+
+<h3>0.6 Home directory resolution</h3>
+<pre><code>echo $HOME
+# Store as {HOME}. All paths derive from this.
+# Typical: /home/username on Linux, /Users/username on macOS</code></pre>
+
+<h2>Phase 1 — State Directory</h2>
+<p>Create the autonomous agent state directory that holds goals, logs, and research.</p>
+
+<h3>1.1 Create directories</h3>
+<pre><code>mkdir -p {HOME}/autonomous-agent/research/{daily,proposals}
+mkdir -p {HOME}/autonomous-agent/observations/topics</code></pre>
+
+<h3>1.2 Create core state files</h3>
+<pre><code># GOAL.md — the main goal file (user will edit this)
+cat &gt; {HOME}/autonomous-agent/GOAL.md &lt;&lt; 'EOF'
+# Your Goal
+
+Write what you want the autonomous agent to work on. Be specific but leave
+implementation details to the system.
+
+Repository: /path/to/your/project
+
+## Tasks
+1. First task
+2. Second task
+...
+
+## Rules
+- Code and documentation in English
+- Every change goes through pipeline: worker → reviewer → human-taste → verifier
+- If reviewer or verifier rejects → fix and re-verify
+- Do not modify Hermes configuration files
+EOF
+
+# PROJECT.md — project path (one line)
+echo "/path/to/your/project" &gt; {HOME}/autonomous-agent/PROJECT.md
+
+# STATUS.md — system status tracker (written by orchestrator)
+echo "# System Status" &gt; {HOME}/autonomous-agent/STATUS.md
+echo "Last tick: $(date -Iseconds)" &gt;&gt; {HOME}/autonomous-agent/STATUS.md
+echo "State: initializing" &gt;&gt; {HOME}/autonomous-agent/STATUS.md
+
+# LOG.md — decision log (written by orchestrator)
+echo "# Decision Log" &gt; {HOME}/autonomous-agent/LOG.md
+
+# HELP_NEEDED.md — escalation file (watched by watchdog)
+touch {HOME}/autonomous-agent/HELP_NEEDED.md
+
+# Research interests
+cat &gt; {HOME}/autonomous-agent/research/interests.md &lt;&lt; 'EOF'
+# Research Interests
+- AI/LLM agents and autonomous systems
+- Open source tools and frameworks
+- Software engineering best practices
+- Machine learning operations (MLOps)
+- Developer productivity
+EOF
+
+# Topic index (prevents duplicate research)
+touch {HOME}/autonomous-agent/research/topic-index.md</code></pre>
+
+<h2>Phase 2 — Profile Creation</h2>
+
+<p>Create 8 profiles. Each profile has a specific role in the autonomous pipeline. Use the <code>aa-</code> prefix to avoid conflicts.</p>
+
+<div class="warn">
+⚠️ BEFORE creating each profile: check that the name doesn't exist from Phase 0.1. If it exists, use alternative prefix.
+</div>
+
+<h3>2.1 Profile mapping table</h3>
+
+<table>
+<tr><th>Profile name</th><th>Role</th><th>Model tier</th><th>Toolsets</th><th>Needs kanban?</th></tr>
+<tr><td>aa-orchestrator</td><td>Decision maker, card creator</td><td>STRONGEST reasoning</td><td>file, kanban</td><td>Yes</td></tr>
+<tr><td>aa-worker</td><td>Task execution (code, terminal)</td><td>CHEAPEST capable</td><td>terminal, file, web, code_execution</td><td>Yes</td></tr>
+<tr><td>aa-reviewer</td><td>Code quality review</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
+<tr><td>aa-human-taste</td><td>AI slop detection, human-like judgment</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
+<tr><td>aa-verifier</td><td>Fact/hallucination check</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
+<tr><td>aa-escalator</td><td>Meta: ask user or proceed?</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
+<tr><td>aa-thinker</td><td>Architecture, deep reasoning</td><td>STRONGEST reasoning</td><td>terminal, file, web, code_execution</td><td>Yes</td></tr>
+<tr><td>aa-goalkeeper</td><td>Global goal achievement check</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
+</table>
+
+<div class="decision">
+<strong>Model tier mapping:</strong>
+<ul>
+  <li>STRONGEST reasoning = {PROVIDER_STRONG}/{MODEL_STRONG} from Phase 0.2</li>
+  <li>CHEAPEST capable = {PROVIDER_CHEAP}/{MODEL_CHEAP} from Phase 0.2</li>
+  <li>BALANCED = {PROVIDER_BALANCED}/{MODEL_BALANCED} — if user has 3+ providers, use a middle-tier one; otherwise use same as STRONGEST but a cheaper model, or CHEAPEST but a smarter model</li>
+</ul>
+</div>
+
+<h3>2.2 Profile configuration template</h3>
+
+<p>Each profile needs a <code>config.yaml</code> with this structure. Use <code>hermes profile create {name}</code> then edit the generated config.</p>
+
+<p><strong>Generic config skeleton (for BALANCED profiles: aa-reviewer, aa-human-taste, aa-verifier, aa-escalator, aa-goalkeeper):</strong></p>
+
+<pre><code># {HOME}/.hermes/profiles/aa-{role}/config.yaml
+provider: {PROVIDER_BALANCED}
+model: {MODEL_BALANCED}
+toolsets:
+  - file
+  - web
+agent:
+  max_turns: 30
+  reasoning_effort: xhigh
+  system_prompt: |
+    [Role-specific prompt — see detailed prompts below]
+kanban:
+  dispatch_in_gateway: true
+  dispatch_interval_seconds: 60
+terminal:
+  backend: local
+  cwd: {HOME}/workspace
+memory:
+  memory_enabled: false</code></pre>
+
+<h3>2.3 Detailed prompts by profile</h3>
+
+<h4>aa-orchestrator</h4>
+<pre><code>provider: {PROVIDER_STRONG}
+model: {MODEL_STRONG}
+toolsets:
+  - file
+  - kanban
+agent:
+  max_turns: 30
+  reasoning_effort: high
+  system_prompt: |
+    You are an autonomous orchestrator. You do NOT write code. You do NOT use the terminal.
+    Do NOT describe what you INTEND to do — CALL the tool and DO it.
+    Your tools: file (ONLY for reading/writing state files), kanban (creating tasks for workers).
+
+    ═══ IDLE GUARD (check this first) ═══
+    Before making any decision, check the kanban board state in context.
+    If ALL tasks are "running" or "done" and there's nothing new to do —
+    do NOT create cards. But do NOT just idle mindlessly.
+
+    IDLE ≠ end of work. IDLE = reflection opportunity:
+    1. If GOAL.md tasks are IN PROGRESS (board not empty) —
+       update STATUS.md with "idle — waiting for workers" and finish.
+    2. If ALL GOAL.md tasks are COMPLETE (board empty, all done):
+       a. SELF-AUDIT: review LOG.md and STATUS.md, evaluate work quality
+          from a human perspective. What would the user do differently?
+       b. If improvements needed → create "polish" card with priority=0
+          (non-blocking, worker fixes in idle time)
+       c. If everything is well done → do NOT stay silent. ASK via
+          HELP_NEEDED.md: "GOAL.md complete. What next? Based on your
+          interests: [proposals from research/proposals/]. Should I work
+          on any of these?"
+       d. NEVER idle silently when all work is done — that wastes tokens
+          and misses opportunities.
+
+    ═══ HELP_NEEDED GUARD ═══
+    If HELP_NEEDED.md is non-empty in context: do NOT create cards.
+    Do NOT update STATUS.md or LOG.md. Just confirm you're waiting.
+    Save tokens — user already knows about the blocker via messaging.
+    Act ONLY if HELP_NEEDED content changed (user responded).
+
+    ═══ TASTE-ESCALATOR ═══
+    Before sensitive decisions (architecture changes, library choices,
+    significant scope changes) — before delegating:
+    1. Create a card for aa-escalator: evaluate impact(1-5),
+       reversibility(1-5), sim_confidence(1-5).
+       If impact≥3 and sim_confidence≤2 → ESCALATE to user.
+       Otherwise → DELEGATE, proceed automatically.
+
+    ═══ WORKFLOW ═══
+    1. Check idle guard
+    2. Check HELP_NEEDED guard
+    3. If work exists: evaluate via taste-escalator whether user input needed
+    4. Create kanban card with kanban_create, assigning to the right profile.
+       CRITICAL: EVERY card MUST have:
+       - workspace_kind: "dir"
+       - workspace_path: the project path from PROJECT.md (injected in context)
+       - assignee: profile name (NEVER omit — tasks without assignee never run)
+       - body: full task description with acceptance criteria
+       Profile to use:
+       - aa-worker: task execution (code, terminal, research)
+       - aa-reviewer: technical quality assessment (0-10, approve/reject)
+       - aa-human-taste: human-like quality, AI-slop detection
+       - aa-verifier: hallucinations, facts, adversarial check
+       - aa-escalator: meta-decision whether real user input needed
+       - aa-thinker: hard problems (architecture, deep reasoning)
+       - aa-goalkeeper: global assessment whether goal achieved
+    5. write_file: update STATUS.md (new state)
+    6. write_file: append to LOG.md: [TIMESTAMP] [DECISION] description
+    7. If completely blocked → write_file to HELP_NEEDED.md and exit
+
+    ═══ RULES ═══
+    - Tools are your ONLY action. Do not write "I will create a card" —
+      CALL kanban_create. LOG.md description appears AFTER execution.
+    - One decision per tick. Don't try to do everything at once.
+    - If you don't know what to do → read LOG.md (read_file), don't guess.
+    - Create precise cards with concrete task descriptions (body).
+    - Every piece of work: worker → reviewer → human-taste+verifier.
+    - You are quadriplegic. Strength is in orchestration, not execution.
+
+    ═══ HUMAN-TASTE EXECUTION ═══
+    When working on ANY task from GOAL.md:
+    1. What would a human expect from this system? Is the output useful,
+       or just AI-slop nobody would want to read?
+    2. When a decision is unclear or controversial (sim_confidence ≤ 2,
+       new territory without precedent) → do NOT guess. ESCALATE to user
+       via HELP_NEEDED.md. Ask a CONCRETE question with alternatives.
+    3. When human taste simulation might fail (genuinely new feature,
+       architecture change, choice between equivalent options) → ESCALATE.
+    4. For routine, well-understood tasks (sim_confidence ≥ 4, impact ≤ 2)
+       → act autonomously, don't ask.
+    5. After escalation — WAIT for user response. Do NOT create cards or
+       make decisions until HELP_NEEDED.md is cleared.
+
+    ═══ SLOP-POLISH (after APPROVE with flags) ═══
+    When human-taste or reviewer APPROVES but flags specific issues —
+    do NOT ignore them. After phase completion and APPROVE verification,
+    create a "polish" card for aa-worker with priority=0 containing ALL
+    unfixed flags as a checklist. This doesn't block the pipeline.
+terminal:
+  backend: local
+  cwd: {HOME}/autonomous-agent/
+memory:
+  memory_enabled: false</code></pre>
+
+<h4>aa-worker</h4>
+<pre><code>provider: {PROVIDER_CHEAP}
+model: {MODEL_CHEAP}
+toolsets:
+  - terminal
+  - file
+  - web
+  - code_execution
+agent:
+  max_turns: 100
+  system_prompt: |
+    You are a pipeline worker — execute tasks precisely and produce concrete results.
+    Your working folder is set automatically by the kanban dispatcher (workspace_path from task).
+    Do NOT delegate further. You are a leaf worker.
+
+    The task body contains detailed instructions. READ IT FULLY before starting.
+    Produce verifiable output: files, test results, code changes.
+    After completing your work, call kanban_complete. Do NOT exit without it.
+terminal:
+  backend: local
+  cwd: {HOME}/workspace
+memory:
+  memory_enabled: false</code></pre>
+
+<h4>aa-reviewer</h4>
+<pre><code>provider: {PROVIDER_BALANCED}
+model: {MODEL_BALANCED}
+toolsets:
+  - file
+  - web
+agent:
+  max_turns: 30
+  reasoning_effort: xhigh
+  system_prompt: |
+    You are a technical code and architecture reviewer.
+    You receive a kanban task — review the associated code/files thoroughly.
+
+    METHODOLOGY:
+    1. Read ALL relevant files — don't skip edge cases or helper modules
+    2. Check: correctness (logic errors, edge cases, error handling),
+       architecture (coupling, cohesion, SOLID), test coverage,
+       security (injection, path traversal, secrets), performance
+       (N+1 queries, unnecessary allocations)
+    3. Score each dimension 0-10
+    4. Aggregate → OVERALL_SCORE
+    5. Threshold: APPROVE only if OVERALL_SCORE >= 7
+
+    CRITICAL: Your entire output must be in English.
+    After review, call kanban_complete. Do NOT exit without it.
+terminal:
+  backend: local
+  cwd: {HOME}/workspace
+memory:
+  memory_enabled: false</code></pre>
+
+<h4>aa-human-taste</h4>
+<pre><code>provider: {PROVIDER_BALANCED}
+model: {MODEL_BALANCED}
+toolsets:
+  - file
+  - web
+agent:
+  max_turns: 30
+  reasoning_effort: xhigh
+  system_prompt: |
+    You are a human-taste evaluator. Your job: detect AI-generated slop
+    and verify the output reads as if a skilled human produced it.
+
+    DIMENSIONS (1-10 each):
+    1. NATURALNESS — Does it read like a human wrote it? (1=obvious AI, 10=indistinguishable)
+    2. USEFULNESS — Would a human find this genuinely useful? (1=filler, 10=actionable)
+    3. PRECISION — Is every claim specific and verifiable? (1=vague handwaving, 10=concrete)
+    4. TASTE — Would a skilled professional make these same design choices?
+       (1=questionable, 10=clearly correct)
+
+    SLOP FLAGS (specific markers):
+    - Generic filler language ("leverage", "robust", "cutting-edge")
+    - Unnecessary summarization of what was just said
+    - Excessive politeness or enthusiasm ("Great question!", "Absolutely!")
+    - Code comments that describe what the code does (not why)
+    - Over-explaining simple concepts
+    - Decorative ASCII art or excessive emoji in technical output
+    - Passive voice when active would be clearer
+    - Hedging without commitment ("might want to consider perhaps...")
+
+    FORMAT:
+    SCORE: X/10 | SLOP_FLAGS: [count + list] | VERDICT: APPROVE/REJECT
+    [score breakdown with evidence]
+
+    Threshold: APPROVE only if SCORE >= 7.
+    After evaluation, call kanban_complete. Do NOT exit without it.
+terminal:
+  backend: local
+  cwd: {HOME}/workspace
+memory:
+  memory_enabled: false</code></pre>
+
+<h4>aa-verifier</h4>
+<pre><code>provider: {PROVIDER_BALANCED}
+model: {MODEL_BALANCED}
+toolsets:
+  - file
+  - web
+agent:
+  max_turns: 30
+  reasoning_effort: xhigh
+  system_prompt: |
+    You are a verification agent. Your job: catch hallucinations and factual errors.
+
+    CHECKS:
+    1. FACTUAL — Are all claims verifiable? Flag every unsupported assertion.
+    2. CONSISTENCY — Does the output contradict itself?
+    3. COMPLETENESS — Are all acceptance criteria met?
+    4. ADVERSARIAL — Try to break the logic. What would a hostile reviewer find?
+    5. CODE — Does the code actually do what it claims? Verify against spec.
+
+    Your entire output must be in English.
+    One REJECT for any reason = overall REJECT.
+    After verification, call kanban_complete. Do NOT exit without it.
+terminal:
+  backend: local
+  cwd: {HOME}/workspace
+memory:
+  memory_enabled: false</code></pre>
+
+<h4>aa-escalator</h4>
+<pre><code>provider: {PROVIDER_BALANCED}
+model: {MODEL_BALANCED}
+toolsets:
+  - file
+  - web
+agent:
+  max_turns: 30
+  reasoning_effort: xhigh
+  system_prompt: |
+    You are taste-escalator — decide whether a task/decision needs real user input.
+
+    EVALUATE THREE DIMENSIONS (1-5 each):
+    1. IMPACT — How big is the impact? (1=trivial, 5=core architecture)
+    2. REVERSIBILITY — Can it be safely undone? (1=irreversible, 5=git revert)
+    3. SIM_CONFIDENCE — How adequate is human-taste/verifier simulation?
+       (1=new territory, 5=well-known pattern)
+
+    DECISION RULES (deterministic):
+    IF impact ≤ 2                              → DELEGATE
+    IF sim_confidence ≥ 4                      → DELEGATE
+    IF impact ≥ 4 AND reversibility ≤ 2        → ESCALATE
+    IF impact ≥ 4 AND sim_confidence ≤ 2       → ESCALATE
+    IF impact ≥ 3 AND reversibility ≤ 2        → ESCALATE
+    ELSE                                       → DELEGATE
+
+    OUTPUT FORMAT:
+    IMPACT: X/5 · REVERSIBILITY: X/5 · CONFIDENCE: X/5
+    DECISION: ESCALATE | DELEGATE
+    REASONING: [one sentence why]
+
+    Default DELEGATE. Escalation is the exception, not the rule.
+    After evaluation, call kanban_complete. Do NOT exit without it.
+terminal:
+  backend: local
+  cwd: {HOME}/workspace
+memory:
+  memory_enabled: false</code></pre>
+
+<h4>aa-thinker</h4>
+<pre><code>provider: {PROVIDER_STRONG}
+model: {MODEL_STRONG}
+toolsets:
+  - terminal
+  - file
+  - web
+  - code_execution
+agent:
+  max_turns: 200
+  reasoning_effort: xhigh
+  system_prompt: |
+    You are an elite analyst (Heavy Thinker). You solve only the hardest
+    problems requiring deep reasoning and full tool access.
+
+    You operate as a worker on the kanban board — receive a task and execute it fully.
+    Do NOT delegate further. You are a leaf worker with maximum intelligence.
+
+    When to use: System architecture, high-impact design decisions,
+    debugging non-standard problems, research requiring synthesis of many sources.
+    After completing your work, call kanban_complete. Do NOT exit without it.
+terminal:
+  backend: local
+  cwd: {HOME}/workspace
+memory:
+  memory_enabled: false</code></pre>
+
+<h4>aa-goalkeeper</h4>
+<pre><code>provider: {PROVIDER_BALANCED}
+model: {MODEL_BALANCED}
+toolsets:
+  - file
+  - web
+agent:
+  max_turns: 30
+  reasoning_effort: xhigh
+  system_prompt: |
+    You are the pipeline goal-keeper. Assess whether the main goal (GOAL.md)
+    has been achieved.
+
+    1. Read GOAL.md — what was the user's goal?
+    2. Read LOG.md — what was actually done?
+    3. Read STATUS.md — what's the current state?
+    4. Verify: do the artifacts produced match the goal specification?
+    5. OUTPUT: SCORE 0-10 + VERDICT (GOAL_ACHIEVED | IN_PROGRESS | FAILED)
+       + EVIDENCE (concrete examples that support your score)
+    6. If any items are incomplete → list exact remaining work
+    7. If everything is done → confirm GOAL_ACHIEVED
+
+    After assessment, call kanban_complete. Do NOT exit without it.
+terminal:
+  backend: local
+  cwd: {HOME}/workspace
+memory:
+  memory_enabled: false</code></pre>
+
+<h3>2.4 Post-creation verification</h3>
+<pre><code># Verify all profiles exist
+hermes profile list | grep aa-
+
+# Expected: 8 profiles
+# aa-orchestrator, aa-worker, aa-reviewer, aa-human-taste,
+# aa-verifier, aa-escalator, aa-thinker, aa-goalkeeper
+
+# Ensure orchestrator is the active profile for the state directory
+# NOT needed — cron jobs set the profile explicitly</code></pre>
+
+<h2>Phase 3 — Scripts</h2>
+
+<p>Create 8 scripts that support the autonomous system. All go in the orchestrator's profile scripts directory.</p>
+
+<pre><code>SCRIPTS_DIR="{HOME}/.hermes/profiles/aa-orchestrator/scripts/"
+mkdir -p $SCRIPTS_DIR</code></pre>
+
+<h3>3.1 state_context.sh</h3>
+<p><strong>Purpose:</strong> Injected as context before every orchestrator tick. Reads all state files and the kanban board. Has HELP_NEEDED guard — if help is needed, outputs minimal prompt to save tokens.</p>
+<pre><code>#!/bin/bash
+# state_context.sh — injects state + prompt into the orchestrator agent
+# Cron job calls this without arguments — everything is in stdout
+
+BASE="{HOME}/autonomous-agent"
+HELP_FILE="$BASE/HELP_NEEDED.md"
+PROJECT_FILE="$BASE/PROJECT.md"
+
+# ── HELP_NEEDED guard: if blocked, send TINY prompt to save tokens ──
+if [ -s "$HELP_FILE" ]; then
+  echo "Blocker detected: HELP_NEEDED.md is non-empty."
+  echo "Do nothing this tick. No tool calls. No file writes. Exit immediately."
+  echo "Waiting for user response. Token saving is priority."
+  exit 0
+fi
+
+# ── Normal context: full state injection ──
+echo "=== GOAL ==="
+cat "$BASE/GOAL.md" 2>/dev/null || echo "(no goal)"
+echo ""
+echo "=== STATUS ==="
+cat "$BASE/STATUS.md" 2>/dev/null || echo "(no status)"
+echo ""
+echo "=== LOG (last 20 lines) ==="
+tail -20 "$BASE/LOG.md" 2>/dev/null || echo "(no log)"
+echo ""
+echo "=== PROJECT PATH ==="
+cat "$PROJECT_FILE" 2>/dev/null || echo "{HOME}/workspace"
+echo ""
+echo "=== HELP SIGNAL ==="
+cat "$HELP_FILE" 2>/dev/null || echo "(none)"
+echo ""
+echo "=== KANBAN BOARD ==="
+
+# Use full path to hermes — cron jobs may not have it on PATH
+HERMES_BIN="{HERMES_INSTALL}/venv/bin/hermes"
+$HERMES_BIN -p aa-orchestrator kanban list 2>/dev/null || echo "(kanban unavailable)"
+echo ""
+echo "=== CRON STATUS ==="
+$HERMES_BIN -p aa-orchestrator cron list 2>/dev/null || echo "(cron unavailable)"
+echo ""
+echo "=== END CONTEXT ==="
+echo ""
+echo "TASK: Evaluate current state and make ONE decision. Follow the rules in your system prompt."
+echo "If idle: self-audit completed work. If all done: ask user for direction via HELP_NEEDED."
+echo "If board has ready/failed tasks: act on them."
+echo "If board has running tasks and nothing new: mark idle and exit."
+echo "Create card with: workspace_kind=dir, workspace_path=$(cat $PROJECT_FILE 2>/dev/null || echo '{HOME}/workspace')"</code></pre>
+
+<h3>3.2 check_help.sh</h3>
+<p><strong>Purpose:</strong> Watchdog — monitors HELP_NEEDED.md and delivers to user's messaging platform. No-agent: stdout is delivered verbatim. Silent when no help needed.</p>
+<pre><code>#!/bin/bash
+# check_help.sh — watchdog: if HELP_NEEDED.md is non-empty, deliver to messaging
+# no-agent job: stdout delivered verbatim. Empty stdout = silent.
+HELP_FILE="{HOME}/autonomous-agent/HELP_NEEDED.md"
+if [ -s "$HELP_FILE" ]; then
+  # Backup BEFORE delivery attempt — if delivery fails, help request survives
+  BACKUP="${{HELP_FILE}}.{{$(date +%s)}}.sent"
+  cp "$HELP_FILE" "$BACKUP"
+
+  echo "🚨 AUTONOMOUS AGENT NEEDS HELP:"
+  echo "---"
+  cat "$HELP_FILE"
+  echo "---"
+  echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S')"
+
+  # Only clear after successful output. Backup preserved for audit trail.
+  true > "$HELP_FILE"
+fi</code></pre>
+
+<h3>3.3 milestone_reporter.sh</h3>
+<p><strong>Purpose:</strong> Detects STATUS.md changes and reports phase transitions to user. Deduplicates via hash comparison. No-agent.</p>
+<pre><code>#!/bin/bash
+# milestone_reporter.sh — report status changes to user's messaging
+# no-agent job: stdout delivered verbatim. Empty = silent (no change).
+
+STATUS_FILE="{HOME}/autonomous-agent/STATUS.md"
+HASH_FILE="{HOME}/.hermes/profiles/aa-orchestrator/scripts/.milestone_hash"
+
+NEW_HASH=$(md5sum "$STATUS_FILE" 2>/dev/null | cut -d' ' -f1)
+OLD_HASH=$(cat "$HASH_FILE" 2>/dev/null)
+
+if [ "$NEW_HASH" != "$OLD_HASH" ]; then
+  echo "📊 System status changed:"
+  echo "---"
+  cat "$STATUS_FILE"
+  echo "---"
+  echo "$NEW_HASH" > "$HASH_FILE"
+fi</code></pre>
+
+<h3>3.4 cleanup.sh</h3>
+<p><strong>Purpose:</strong> Periodic maintenance — archive done tasks >24h, alert on blocked tasks >12h, remove empty observations and stale temp files. No-agent.</p>
+<pre><code>#!/bin/bash
+# cleanup.sh — periodic maintenance for the autonomous system
+# no-agent job: stdout delivered verbatim. Empty = silent (nothing to clean).
+
+HERMES_BIN="{HERMES_INSTALL}/venv/bin/hermes"
+BASE="{HOME}/autonomous-agent"
+CHANGES=0
+
+# Archive done tasks older than 24h
+$HERMES_BIN -p aa-orchestrator kanban gc --older-than 24h 2>/dev/null && CHANGES=1
+
+# Alert on blocked tasks older than 12h
+BLOCKED=$($HERMES_BIN -p aa-orchestrator kanban list 2>/dev/null | grep -c "blocked")
+if [ "$BLOCKED" -gt 0 ]; then
+  echo "⚠️  $BLOCKED task(s) blocked for >12h — check kanban board"
+  CHANGES=1
+fi
+
+# Remove empty observation files >24h old
+find "$BASE/observations" -name "*.md" -size 0 -mtime +1 -delete 2>/dev/null
+
+# Clean stale temp files
+find /tmp -name "hermes_*" -mtime +1 -delete 2>/dev/null
+
+# Only output if we did something
+[ "$CHANGES" -eq 0 ] && exit 0
+echo "🧹 Cleanup completed at $(date)"</code></pre>
+
+<h3>3.5 observer_context.sh</h3>
+<p><strong>Purpose:</strong> Memory observer — captures noteworthy system events into observation files for later consolidation. LLM job (uses STRONGEST model, small footprint).</p>
+<pre><code>#!/bin/bash
+# observer_context.sh — capture system events as observations
+# LLM job: runs agent to analyze patterns
+
+BASE="{HOME}/autonomous-agent"
+
+echo "=== SYSTEM STATE ==="
+cat "$BASE/STATUS.md" 2>/dev/null
+echo ""
+echo "=== RECENT LOG (last 30 lines) ==="
+tail -30 "$BASE/LOG.md" 2>/dev/null
+echo ""
+echo "=== END CONTEXT ==="
+echo ""
+echo "TASK: Analyze the recent system behavior."
+echo "1. Identify any patterns worth recording (successes, failures, decisions made)"
+echo "2. For each pattern: write a concise observation to $BASE/observations/YYYY-MM-DD_HHMM.md"
+echo "3. Each observation file: date, one-line summary, 2-5 sentences of context"
+echo "4. If nothing noteworthy happened, write nothing (skip)."
+echo "5. No interpretation. No filler. Just facts about what happened."</code></pre>
+
+<h3>3.6 consolidator_context.sh</h3>
+<p><strong>Purpose:</strong> Merges raw observations into topic files. Runs every 12h. LLM job (uses STRONGEST model).</p>
+<pre><code>#!/bin/bash
+# consolidator_context.sh — merge observations into topic files
+# LLM job: runs agent to consolidate
+
+BASE="{HOME}/autonomous-agent"
+
+echo "=== RAW OBSERVATIONS ==="
+ls "$BASE/observations/"*.md 2>/dev/null | while read f; do
+  echo "--- $(basename $f) ---"
+  cat "$f"
+  echo ""
+done
+
+echo "=== EXISTING TOPICS ==="
+ls "$BASE/observations/topics/"*.md 2>/dev/null | while read f; do
+  echo "--- $(basename $f) ---"
+  cat "$f"
+  echo ""
+done
+echo ""
+echo "=== END CONTEXT ==="
+echo ""
+echo "TASK: Consolidate observations into topic files."
+echo "1. Group observations by theme"
+echo "2. For each theme: create or append to $BASE/observations/topics/THEME.md"
+echo "3. After consolidating: delete the original observation files"
+echo "4. Goal: compress without information loss"</code></pre>
+
+<h3>3.7 research_context.sh</h3>
+<p><strong>Purpose:</strong> Daily research — finds relevant papers/posts based on user interests. LLM job (uses STRONGEST model, once daily).</p>
+<pre><code>#!/bin/bash
+# research_context.sh — daily research based on user interests
+# LLM job: runs agent to search and summarize
+
+BASE="{HOME}/autonomous-agent"
+TODAY=$(date +%Y-%m-%d)
+
+echo "=== RESEARCH INTERESTS ==="
+cat "$BASE/research/interests.md" 2>/dev/null || echo "(no interests file)"
+echo ""
+echo "=== TOPIC INDEX (already covered) ==="
+cat "$BASE/research/topic-index.md" 2>/dev/null || echo "(empty)"
+echo ""
+echo "=== END CONTEXT ==="
+echo ""
+echo "TASK: Find interesting recent content matching the user's interests."
+echo "1. For each interest topic: search the web for recent papers, blog posts, tools"
+echo "2. Filter: skip topics already in topic-index.md"
+echo "3. For each finding: write a 3-5 sentence summary to $BASE/research/daily/$TODAY.md"
+echo "4. Create concrete proposals to $BASE/research/proposals/$TODAY.md:"
+echo "   'Based on [finding], we could [specific action]. Impact: [low/med/high]. Effort: [estimate].'"
+echo "5. Update topic-index.md with new topics covered"</code></pre>
+
+<h3>3.8 research_proposal_reporter.sh</h3>
+<p><strong>Purpose:</strong> Delivers today's research proposals to user. No-agent. Silent if no proposals exist.</p>
+<pre><code>#!/bin/bash
+# research_proposal_reporter.sh — deliver research proposals to user
+# no-agent job: stdout delivered verbatim. Empty = silent (no proposals).
+
+BASE="{HOME}/autonomous-agent"
+TODAY=$(date +%Y-%m-%d)
+PROPOSAL_FILE="$BASE/research/proposals/$TODAY.md"
+
+if [ -s "$PROPOSAL_FILE" ]; then
+  echo "💡 Research proposals for $TODAY:"
+  echo "---"
+  cat "$PROPOSAL_FILE"
+  echo "---"
+fi</code></pre>
+
+<h3>3.9 Make scripts executable</h3>
+<pre><code>chmod +x {HOME}/.hermes/profiles/aa-orchestrator/scripts/*.sh</code></pre>
+
+<h2>Phase 4 — Cron Jobs</h2>
+
+<p>Create 8 cron jobs. All run under the <code>aa-orchestrator</code> profile. Distinguish between LLM jobs (consume tokens) and no-agent jobs (zero tokens).</p>
+
+<div class="decision">
+<strong>Messaging delivery:</strong> Use the platform + chat_id from Phase 0.3 discovery.
+IF platform found: <code>--deliver {platform}:{chat_id}</code>
+ELSE: <code>--deliver local</code> for all jobs.
+</div>
+
+<table>
+<tr><th>Job</th><th>Schedule</th><th>Script</th><th>Mode</th><th>Tokens</th><th>Deliver</th></tr>
+<tr><td>orchestrator-heartbeat</td><td><code>0 * * * *</code></td><td>state_context.sh</td><td>LLM</td><td>~700/tick</td><td>local</td></tr>
+<tr><td>memory-observer</td><td><code>5 * * * *</code></td><td>observer_context.sh</td><td>LLM</td><td>~500/tick</td><td>local</td></tr>
+<tr><td>memory-consolidator</td><td><code>0 */12 * * *</code></td><td>consolidator_context.sh</td><td>LLM</td><td>~400/tick</td><td>local</td></tr>
+<tr><td>ping-human-watchdog</td><td><code>*/10 * * * *</code></td><td>check_help.sh</td><td>no-agent</td><td>0</td><td>messaging</td></tr>
+<tr><td>milestone-reporter</td><td><code>10 * * * *</code></td><td>milestone_reporter.sh</td><td>no-agent</td><td>0</td><td>messaging</td></tr>
+<tr><td>cleanup-agent</td><td><code>0 */6 * * *</code></td><td>cleanup.sh</td><td>no-agent</td><td>0</td><td>messaging</td></tr>
+<tr><td>daily-research</td><td><code>0 18 * * *</code></td><td>research_context.sh</td><td>LLM</td><td>~2000/tick</td><td>local</td></tr>
+<tr><td>research-proposal-reporter</td><td><code>30 18 * * *</code></td><td>research_proposal_reporter.sh</td><td>no-agent</td><td>0</td><td>messaging</td></tr>
+</table>
+
+<pre><code>HERMES_BIN="{HERMES_INSTALL}/venv/bin/hermes"
+PROFILE="aa-orchestrator"
+DELIVER_MSG="{DELIVER_TARGET}"   # from Phase 0.3, e.g. "telegram:123456789"
+DELIVER_LOCAL="local"
+
+# LLM jobs (consume tokens, use deliver=local — they write to files)
+$HERMES_BIN -p $PROFILE cron create \
+  --schedule "0 * * * *" \
+  --script state_context.sh \
+  --deliver $DELIVER_LOCAL \
+  --workdir "{HOME}/autonomous-agent" \
+  "orchestrator-heartbeat"
+
+$HERMES_BIN -p $PROFILE cron create \
+  --schedule "5 * * * *" \
+  --script observer_context.sh \
+  --deliver $DELIVER_LOCAL \
+  "memory-observer"
+
+$HERMES_BIN -p $PROFILE cron create \
+  --schedule "0 */12 * * *" \
+  --script consolidator_context.sh \
+  --deliver $DELIVER_LOCAL \
+  "memory-consolidator"
+
+$HERMES_BIN -p $PROFILE cron create \
+  --schedule "0 18 * * *" \
+  --script research_context.sh \
+  --deliver $DELIVER_LOCAL \
+  "daily-research"
+
+# No-agent jobs (zero tokens, deliver to user's messaging platform)
+$HERMES_BIN -p $PROFILE cron create \
+  --schedule "*/10 * * * *" \
+  --script check_help.sh \
+  --no-agent \
+  --deliver $DELIVER_MSG \
+  "ping-human-watchdog"
+
+$HERMES_BIN -p $PROFILE cron create \
+  --schedule "10 * * * *" \
+  --script milestone_reporter.sh \
+  --no-agent \
+  --deliver $DELIVER_MSG \
+  "milestone-reporter"
+
+$HERMES_BIN -p $PROFILE cron create \
+  --schedule "0 */6 * * *" \
+  --script cleanup.sh \
+  --no-agent \
+  --deliver $DELIVER_MSG \
+  "cleanup-agent"
+
+$HERMES_BIN -p $PROFILE cron create \
+  --schedule "30 18 * * *" \
+  --script research_proposal_reporter.sh \
+  --no-agent \
+  --deliver $DELIVER_MSG \
+  "research-proposal-reporter"</code></pre>
+
+<div class="warn">
+⚠️ FOR EACH cron create command: first check from Phase 0.5 whether a cron job with the same name already exists. If it does, use a different name or ask the user.
+</div>
+
+<h2>Phase 5 — Gateway Verification</h2>
+
+<pre><code># Check gateway is running
+systemctl --user is-active hermes-gateway-aa-orchestrator 2>/dev/null && echo "✓ Gateway active" || echo "Gateway not running"
+
+# If not running, install and start:
+hermes -p aa-orchestrator gateway install
+systemctl --user enable --now hermes-gateway-aa-orchestrator
+
+# Verify cron scheduler is ticking
+sleep 5
+hermes -p aa-orchestrator cron status
+# Expected: "✓ Gateway is running — cron jobs will fire automatically"</code></pre>
+
+<h2>Phase 6 — End-to-End Verification</h2>
+
+<h3>6.1 Profile verification</h3>
+<pre><code>hermes profile list | grep aa-
+# Expected: 8 profiles listed</code></pre>
+
+<h3>6.2 Cron verification</h3>
+<pre><code>hermes -p aa-orchestrator cron list
+# Expected: 8 jobs, all active, with "Next run" timestamps</code></pre>
+
+<h3>6.3 Kanban verification</h3>
+<pre><code>hermes -p aa-orchestrator kanban list
+# Expected: empty board ("No tasks")
+# If tasks exist from previous runs, the orchestrator will handle them</code></pre>
+
+<h3>6.4 State directory verification</h3>
+<pre><code>ls -la {HOME}/autonomous-agent/
+# Expected: GOAL.md, PROJECT.md, STATUS.md, LOG.md, HELP_NEEDED.md,
+#           research/, observations/</code></pre>
+
+<h3>6.5 Gateway + cron heartbeat test</h3>
+<pre><code># Force-run the heartbeat to test end-to-end
+hermes -p aa-orchestrator cron run [heartbeat-job-id]
+# Wait 30 seconds, then check:
+cat {HOME}/autonomous-agent/STATUS.md
+# Expected: "State: idle" or "State: awaiting" — not "initializing"</code></pre>
+
+<h3>6.6 Final checklist</h3>
+<table>
+<tr><th>Item</th><th>Command</th><th>Expected</th></tr>
+<tr><td>Profiles exist</td><td><code>hermes profile list | grep aa- | wc -l</code></td><td>8</td></tr>
+<tr><td>Cron jobs active</td><td><code>hermes -p aa-orchestrator cron list | grep -c "Next run"</code></td><td>8</td></tr>
+<tr><td>Gateway active</td><td><code>systemctl --user is-active hermes-gateway-*</code></td><td>active</td></tr>
+<tr><td>State directory ready</td><td><code>test -f {HOME}/autonomous-agent/GOAL.md && echo ok</code></td><td>ok</td></tr>
+<tr><td>Scripts executable</td><td><code>test -x {HOME}/.hermes/profiles/aa-orchestrator/scripts/state_context.sh && echo ok</code></td><td>ok</td></tr>
+<tr><td>No existing profile conflicts</td><td><code>hermes profile list | grep -v aa- | grep -E "orchestrator|worker|reviewer"</code></td><td>(empty)</td></tr>
+</table>
+
+<h2>Troubleshooting</h2>
+
+<h3>Orchestrator creates tasks but nothing happens</h3>
+<ul>
+  <li>Check: <code>hermes -p aa-orchestrator kanban list</code> — are tasks in "ready"?</li>
+  <li>Check: <code>systemctl --user status hermes-gateway-aa-orchestrator</code> — is the dispatcher running?</li>
+  <li>The dispatcher claims and runs "ready" tasks every 60 seconds. If tasks stay "ready" >2 minutes, the gateway dispatcher is stuck.</li>
+</ul>
+
+<h3>Workers crash with "protocol violation"</h3>
+<ul>
+  <li>Worker exited without calling <code>kanban_complete</code> or <code>kanban_block</code></li>
+  <li>Fix: ensure every worker profile has <code>kanban_complete</code> in its system prompt</li>
+  <li>Check: <code>grep kanban_complete {HOME}/.hermes/profiles/aa-*/config.yaml</code></li>
+</ul>
+
+<h3>HELP_NEEDED messages not arriving</h3>
+<ul>
+  <li>Check: <code>cat {HOME}/autonomous-agent/HELP_NEEDED.md</code> — is it non-empty?</li>
+  <li>Check: <code>hermes -p aa-orchestrator cron log [watchdog-job-id]</code> — any errors?</li>
+  <li>Check: <code>hermes channels</code> — is messaging platform configured?</li>
+  <li>Check backup: <code>ls {HOME}/autonomous-agent/HELP_NEEDED.md.*.sent</code> — if backup exists but you never got the message, delivery failed silently</li>
+</ul>
+
+<h3>Too many tokens consumed</h3>
+<ul>
+  <li>Reduce heartbeat frequency: <code>hermes -p aa-orchestrator cron edit [id] --schedule "0 */2 * * *"</code> (every 2h)</li>
+  <li>Reduce observer frequency: <code>hermes -p aa-orchestrator cron edit [id] --schedule "0 * * * *"</code> (hourly)</li>
+  <li>The idle guard already saves tokens when nothing to do</li>
+  <li>Verify: <code>cat {HOME}/autonomous-agent/LOG.md</code> — how many active vs idle ticks?</li>
+</ul>
+
+<h2>Adaptation Guidelines for AI Agents</h2>
+
+<div class="decision">
+<strong>GOLDEN RULE:</strong> This guide describes the IDEAL system. The user's environment
+WILL differ. Your job is to ADAPT, not just copy. Every {PLACEHOLDER} must be resolved
+from discovery data, not assumed.
+</div>
+
+<h3>Key adaptation points</h3>
+<ol>
+  <li><strong>Provider/model names</strong> — never hardcode. Map from discovery.</li>
+  <li><strong>Profile prefix</strong> — default "aa-", but check for conflicts.</li>
+  <li><strong>Message platform</strong> — Telegram, Discord, Slack, etc. Detect from channels.</li>
+  <li><strong>Path to hermes binary</strong> — resolve from installation. Try: <code>which hermes</code>, <code>~/.hermes/hermes-agent/venv/bin/hermes</code>, <code>~/.local/bin/hermes</code>.</li>
+  <li><strong>Home directory</strong> — <code>$HOME</code> always. Never hardcode <code>/home/username</code>.</li>
+  <li><strong>Working directory</strong> — <code>$HOME/workspace</code> if it exists, otherwise <code>$HOME</code>.</li>
+  <li><strong>Max turns per profile</strong> — adjust based on user's model tier. Strong models can have more turns.</li>
+  <li><strong>Model choice for BALANCED tier</strong> — if user has only 2 providers, use the cheaper one for BALANCED to save tokens.</li>
+</ol>
+
+<h3>What to NEVER do</h3>
+<ul>
+  <li><span class="cross">✗</span> Overwrite an existing profile with the same name</li>
+  <li><span class="cross">✗</span> Hardcode API keys or provider names</li>
+  <li><span class="cross">✗</span> Modify the user's default profile</li>
+  <li><span class="cross">✗</span> Change the user's existing cron jobs</li>
+  <li><span class="cross">✗</span> Assume a specific messaging platform</li>
+  <li><span class="cross">✗</span> Install without asking if profiles/cron already exist</li>
+</ul>
+
+<p style="margin-top:48px; padding-top:16px; border-top:1px solid var(--border); color:#8b949e; font-size:0.9em;">
+Autonomy Hermes System — v1.0 — <a href="https://github.com/Rybens92/autonomy-hermes-system">github.com/Rybens92/autonomy-hermes-system</a>
+</p>
+
+</body>
+</html>

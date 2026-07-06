@@ -1,0 +1,13 @@
+# Research Interests
+- AI/LLM agents and autonomous systems
+- Open source tools and frameworks
+- Software engineering best practices
+- Machine learning operations (MLOps)
+- Developer productivity
+
+# Instructions
+Add your research interests here. One line per topic.
+The daily research agent will search for recent papers, blog posts,
+and tools matching these interests. Results go to research/daily/.
+Proposals for action go to research/proposals/ and are delivered
+to your messaging platform at 18:30.

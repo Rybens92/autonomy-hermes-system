@@ -1,0 +1,37 @@
+# Your Goal
+
+Write what you want the autonomous agent to work on. Be specific but leave
+the implementation details to the system.
+
+Repository: /path/to/your/project
+
+## Tasks
+1. First task — describe what needs to be done
+2. Second task
+3. ...
+
+## Permanent Task: System Maintenance
+
+This system is itself a project. When the main tasks above are in progress
+or idle, use spare cycles to:
+
+1. **Audit operations** — which profiles work, which crash, which have suboptimal prompts
+2. **Improve prompts** — if any agent produces AI-slop or doesn't meet expectations
+3. **New features** — what's missing from a human-user perspective?
+4. **Cost optimization** — which cron jobs can be optimized, which toolsets are unnecessary
+5. **Error handling** — what breaks? Where are the missing edge cases?
+
+### Rules for system tasks
+- FIRST evaluate via taste-escalator. If impact ≥ 3 and sim_confidence ≤ 2
+  (new feature, controversial change) → ESCALATE to user via HELP_NEEDED.md
+  with a concrete question and alternatives.
+- Do NOT modify profile config.yaml files without ESCALATE
+- You MAY modify scripts (state_context.sh, cleanup.sh) without asking if
+  it's a bug fix (impact ≤ 2, sim_confidence ≥ 4)
+- Changes to GOAL.md (new goals) → always ESCALATE
+
+## Rules
+- Code and documentation in English
+- Every change goes through pipeline: worker → reviewer → human-taste → verifier
+- If reviewer or verifier rejects → fix and re-verify
+- Do not modify Hermes configuration files
