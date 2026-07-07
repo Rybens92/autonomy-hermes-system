@@ -25,13 +25,16 @@ OTHERWISE: respond with 'IDLE — waiting for user.' and no tool calls.
 This saves ~95% tokens compared to full context injection when the system is blocked.
 
 ### Normal Context (lines 26-46)
-When not blocked, injects:
-- PROJECT.md — workspace path (line 29)
-- GOAL.md — user's goals (line 32)
-- STATUS.md — current system state (line 35)
-- LOG.md — last **30** lines of decision log (`tail -30`, line 38)
-- HELP_NEEDED.md — escalation status (shows `(none)` when absent, line 41)
-- Kanban board — task list via `kanban list | head -30` (line 44)
+When not blocked, injects a **compressed** state view (optimized from full file dumps to reduce token usage by ~86%):
+
+- PROJECT.md — first line of workspace path
+- GOAL.md — only goal headers (all goals listed), plus the **active goal's task list** (not full goal content — trimmed from 419 to ~40 lines)
+- STATUS.md — first 7 lines (summary + goal status)
+- LOG.md — only last **5** decision entries, filtered to `^[` lines (`grep "^\[" | tail -5`). Previously injected all 30 lines (~31KB of decision text).
+- Kanban board — only **non-done** tasks (filtered via `grep -v "^✓ "` | head -10). Previously included all ~42 done tasks.
+- HELP_NEEDED.md — shows `(none)` when absent
+
+**Savings:** 554 lines / 53100 bytes → 72 lines / 7275 bytes (86% reduction, ~21K tokens saved per hourly tick).
 
 No cron status is output — the script does not query or report cron job health.
 
@@ -47,4 +50,4 @@ Appends a concise task instruction telling the orchestrator to:
 - The PROJECT.md path is used as `workspace_path` in kanban_create — ensure PROJECT.md contains the correct absolute path
 - The `HERMES_BIN` variable must point to the hermes CLI binary. Adjust based on installation.
 - HELP_NEEDED guard can be adjusted: change the guard text, or add a cooldown (e.g., only inject full context every Nth tick when blocked)
-- Adjust `tail -30` LOG.md line count for higher or lower tick frequency
+- Adjust `tail -10` LOG.md line count for higher or lower tick frequency. Original: `tail -30` (optimized in Task 8 to reduce token usage by 86%)

@@ -8,7 +8,9 @@ Merges raw observation files into topic files. Runs every 12h. LLM job — the a
 ### Context (lines 5-17)
 Lists observation files filtered by age — only files older than **6 hours** are shown (`find -mmin +360`, line 8). This prevents recently-written observations from being consolidated before the agent has had time to process them in a subsequent tick.
 
-Each matching file is injected in full with its filename as a heading (lines 8-12).
+Results are sorted by modification time and then **capped to the last 2 files** (`sort | tail -2`). Each file is injected with its filename as a heading, and content is **capped to the first 20 lines** (`head -20`).
+
+**Optimization note (Task 8):** Previously all matching observation files were injected in full. Some files were 8-17KB (e.g., memory-analysis.md at 17.5KB). Capping to last 2 files + 20 lines each reduced output from 53 lines / 3861 bytes (variable, growing unbounded) to stable 40 lines / ~2500 bytes (34% reduction today, unlimited reduction on future growth).
 
 Also lists existing topic files in `observations/topics/` (line 15). If none exist, shows `(none)`.
 

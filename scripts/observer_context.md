@@ -6,9 +6,11 @@ Captures noteworthy system events into observation files for later consolidation
 ## Key Logic
 
 ### Context (lines 5-13)
-Injects **only** the last 50 lines of LOG.md (`tail -50`, line 8) as context. No STATUS.md is injected.
+Injects **only** the last 10 decision log entries (`grep "^\[" LOG.md | tail -10`, line 8) as context. LOG.md entries are filtered to timestamped lines only. No STATUS.md is injected.
 
-Also injects the most recent observation file under `[LAST OBSERVATION]` (lines 10-11) — reads the newest `*.md` file in `observations/`. If no observations exist yet, shows `(none yet)`.
+**Optimization note (Task 8):** Previously injected `tail -50` (~31KB from long decision lines). Filtering to `^[` + capping at 10 lines reduced output from 128 lines / 38649 bytes to 54 lines / 11584 bytes (70% reduction).
+
+Also injects the most recent observation file under `[LAST OBSERVATION]` (lines 10-11) — reads the newest `*.md` file in `observations/`. Capped to first 30 lines via `head -30` to prevent large observation files from flooding context. If no observations exist yet, shows `(none yet)`.
 
 ### Task (lines 15-20)
 Instructs the agent to:
