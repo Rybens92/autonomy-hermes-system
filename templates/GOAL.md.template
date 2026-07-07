@@ -20,6 +20,7 @@ or idle, use spare cycles to:
 3. **New features** — what's missing from a human-user perspective?
 4. **Cost optimization** — which cron jobs can be optimized, which toolsets are unnecessary
 5. **Error handling** — what breaks? Where are the missing edge cases?
+6. **Continuous audit of completed work** — "Done" ≠ "perfect". When a GOAL.md task is completed, don't treat it as closed forever. During idle cycles (board empty, all done): pick the most recently completed task (or rotate through all done), audit the actual artifacts (run tests, check output, review code), look for improvements (quality, edge cases, docs, AI-slop). If problems found → create "polish" card (priority=0) with checklist. Only when audit is clean → ask user for new direction. This is NOT token waste — it prevents technical debt. Despite the token-saving rule, this audit is a PRIORITY.
 
 ### Rules for system tasks
 - FIRST evaluate via taste-escalator. If impact ≥ 3 and sim_confidence ≤ 2
