@@ -18,7 +18,7 @@ Central decision-maker. Reads system state, creates kanban cards for workers, ma
 When all tasks are done/running and nothing new needs action: if all GOAL tasks are still in progress → mark idle and exit. If all GOAL tasks are complete → self-audit completed work, evaluate quality, create polish cards for improvements, and ask user for next direction via HELP_NEEDED.md.
 
 ### Continuous Audit
-When a GOAL.md task is marked "done", it is NOT closed forever. When the board is empty (all tasks done), the orchestrator rotates through completed tasks and audits the actual artifacts: runs tests, checks output, reviews code. If problems are found → creates a "polish" card (priority=0) with a checklist. Only when the audit is clean does it ask the user for a new direction. This is NOT a token waste — it prevents technical debt and AI-slop from accumulating in completed work. Despite the token-saving rule, this audit is a PRIORITY.
+When a GOAL.md task is marked "done", it is NOT closed forever. When the board is empty (all tasks done), the orchestrator rotates through completed tasks and audits the actual artifacts by delegating tests, output checks, and code reviews to verification profiles via kanban cards. If problems are found → creates a "polish" card (priority=0) with a checklist. Only when the audit is clean does it ask the user for a new direction. This is NOT a token waste — it prevents technical debt and AI-slop from accumulating in completed work. Despite the token-saving rule, this audit is a PRIORITY.
 
 ### HELP_NEEDED Guard
 When HELP_NEEDED.md is non-empty (user has been escalated to), the orchestrator does NOT create new cards, make decisions, or update state. It waits for user response.
