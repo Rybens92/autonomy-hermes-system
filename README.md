@@ -33,11 +33,14 @@ aa-orchestrator ──── reads state, creates kanban cards
    │                         aa-thinker    (strongest reasoning — architecture)
    │                         aa-goalkeeper (global goal check)
    │
+   ├──► aa-comms ──────► user messaging platform (Telegram DM)
+   │      (file-only communication relay)
+   │
    ▼
 Gate decisions: run pipeline ──► approve ──► next phase
                   │
                   ▼
-            blocker ──► HELP_NEEDED.md ──► watchdog ──► Telegram 🚨
+            blocker ──► HELP_NEEDED.md ──► aa-comms ──► Telegram 🚨
 ```
 
 ## Features
@@ -46,8 +49,11 @@ Gate decisions: run pipeline ──► approve ──► next phase
 - Reads `GOAL.md` — you write natural language tasks
 - Hourly orchestration tick (configurable, I use 1h to save tokens)
 - Iteratively decomposes work into kanban cards
-- Pipeline: worker → reviewer → human-taste → verifier
-- When stuck: escalates to you via `HELP_NEEDED.md` → Telegram
+- Pipeline: worker → reviewer → aa-human-taste → verifier
+- When stuck: writes to `HELP_NEEDED.md` → aa-comms delivers to Telegram
+
+### Orchestrator / Comms Split
+The orchestrator is fully headless — it never communicates directly with the user. Instead, it writes blockers and questions to `HELP_NEEDED.md`. The `aa-comms` profile, a separate file-only profile connected to your messaging platform, reads `HELP_NEEDED.md`, delivers the question to you, and writes your response back. This separation ensures least privilege: the orchestrator orchestrates, the comms profile communicates.
 
 ### Human Taste Simulation
 The `aa-human-taste` profile evaluates every output as a human would — detecting AI slop, unnatural language, design decisions that don't feel right. The `aa-escalator` profile decides when simulated taste is reliable and when it needs your real human judgment.
@@ -57,15 +63,29 @@ When all goals are complete, the system doesn't just sit idle. It:
 - Re-reads its own work (LOG.md, STATUS.md)
 - Evaluates quality from a human perspective
 - Creates polish cards for things to improve
-- Asks you: "Done. What should I work on next? Based on your interests: [proposals]"
+- Writes proposals to HELP_NEEDED.md: "Done. What should I work on next?"
 
 ### Supporting Infrastructure
 - **Memory observer** — captures system behavior patterns
 - **Memory consolidator** — merges observations into topics
-- **Watchdog** — alerts you when the agent needs help
+- **HELP_NEEDED monitor** — aa-comms cron job checks every 30min for blocker questions and delivers them to you
 - **Milestone reporter** — notifies you on phase transitions
 - **Cleanup agent** — removes stale tasks, old temp files
 - **Daily research** — searches the web for content matching your interests, writes summaries to `research/daily/`, creates actionable proposals to `research/proposals/`, and delivers them to you at 18:30 via your messaging platform
+
+## Profiles (9)
+
+| Profile | Role | Model Tier | Toolsets |
+|---------|------|------------|----------|
+| **aa-orchestrator** | Decision maker, card creator | STRONGEST | file, kanban |
+| **aa-worker** | Task execution | CHEAPEST | terminal, file, web, code_execution |
+| **aa-reviewer** | Code quality review | BALANCED | file, web |
+| **aa-human-taste** | AI slop detection | BALANCED | file, web |
+| **aa-verifier** | Fact/hallucination check | BALANCED | file, web |
+| **aa-escalator** | Meta: ask user or proceed? | BALANCED | file, web |
+| **aa-comms** | User-facing communication | BALANCED | file only |
+| **aa-thinker** | Architecture, deep reasoning | STRONGEST | terminal, file, web, code_execution |
+| **aa-goalkeeper** | Global goal achievement | BALANCED | file, web |
 
 ## Quick Start
 
@@ -147,7 +167,7 @@ With hourly ticks and cheap models for workers/review/taste (strongest reasoning
 
 - **~30K strong-model tokens/day** for orchestration (at ~1 tick/hour + research)
 - **~50K cheap-model tokens/day** for worker execution (varies with task volume)
-- All supporting jobs (watchdog, cleanup, milestone): **0 LLM tokens** (no-agent scripts)
+- All supporting jobs (watchdog, cleanup, milestone, HELP_NEEDED monitor): **0 LLM tokens** (no-agent scripts)
 
 > The project creator uses GLM-5.2 for orchestration and DeepSeek v4 for execution.
 > Your Hermes will choose models based on *your* configured providers.

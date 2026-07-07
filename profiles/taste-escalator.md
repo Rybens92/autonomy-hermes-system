@@ -1,7 +1,7 @@
 # aa-escalator
 
 ## Role
-Meta-decision maker. Evaluates whether a task or decision truly needs real human input or can be handled autonomously by the system's human-taste and verifier profiles.
+Meta-decision maker. Evaluates whether a task or decision truly needs real human input or can be handled autonomously by the system's aa-human-taste and verifier profiles.
 
 ## Model Tier
 **BALANCED** — needs good judgment but works on a small, structured decision.

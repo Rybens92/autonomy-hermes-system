@@ -49,10 +49,10 @@
 </head>
 <body>
 
-<h1>🔄 Autonomy Hermes System<br><small style="font-size:0.5em;color:#8b949e;">AI Agent Installation Guide — v1.0</small></h1>
+<h1>🔄 Autonomy Hermes System<br><small style="font-size:0.5em;color:#8b949e;">AI Agent Installation Guide — v1.1</small></h1>
 
 <p><strong>Target audience:</strong> AI agents (Hermes, Claude Code, Codex, OpenCode) that need to replicate this autonomous agent system on a user's machine.<br>
-<strong>Goal:</strong> Install 8 specialized profiles, 8 cron jobs, 8 scripts, and a state directory — without breaking anything the user already has.</p>
+<strong>Goal:</strong> Install 9 specialized profiles, 8 cron jobs, 9 scripts, and a state directory — without breaking anything the user already has.</p>
 
 <div class="decision">
 This guide is a <strong>decision tree</strong>, not a recipe. At every step, you MUST discover what the user already has and adapt. Never assume. Never overwrite.
@@ -182,7 +182,7 @@ Repository: /path/to/your/project
 
 ## Rules
 - Code and documentation in English
-- Every change goes through pipeline: worker → reviewer → human-taste → verifier
+- Every change goes through pipeline: worker → reviewer → aa-human-taste → verifier
 - If reviewer or verifier rejects → fix and re-verify
 - Do not modify Hermes configuration files
 EOF
@@ -216,7 +216,7 @@ touch {HOME}/autonomous-agent/research/topic-index.md</code></pre>
 
 <h2>Phase 2 — Profile Creation</h2>
 
-<p>Create 8 profiles. Each profile has a specific role in the autonomous pipeline. Use the <code>aa-</code> prefix to avoid conflicts.</p>
+<p>Create 9 profiles. Each profile has a specific role in the autonomous pipeline. Use the <code>aa-</code> prefix to avoid conflicts.</p>
 
 <div class="warn">
 ⚠️ BEFORE creating each profile: check that the name doesn't exist from Phase 0.1. If it exists, use alternative prefix.
@@ -232,6 +232,7 @@ touch {HOME}/autonomous-agent/research/topic-index.md</code></pre>
 <tr><td>aa-human-taste</td><td>AI slop detection, human-like judgment</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
 <tr><td>aa-verifier</td><td>Fact/hallucination check</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
 <tr><td>aa-escalator</td><td>Meta: ask user or proceed?</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
+<tr><td>aa-comms</td><td>User-facing communication</td><td>BALANCED</td><td>file only</td><td>No</td></tr>
 <tr><td>aa-thinker</td><td>Architecture, deep reasoning</td><td>STRONGEST reasoning</td><td>terminal, file, web, code_execution</td><td>Yes</td></tr>
 <tr><td>aa-goalkeeper</td><td>Global goal achievement check</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
 </table>
@@ -324,7 +325,7 @@ agent:
     ═══ WORKFLOW ═══
     1. Check idle guard
     2. Check HELP_NEEDED guard
-    3. If work exists: evaluate via taste-escalator whether user input needed
+    3. If work exists: evaluate via aa-escalator whether user input needed
     4. Create kanban card with kanban_create, assigning to the right profile.
        CRITICAL: EVERY card MUST have:
        - workspace_kind: "dir"
@@ -349,7 +350,7 @@ agent:
     - One decision per tick. Don't try to do everything at once.
     - If you don't know what to do → read LOG.md (read_file), don't guess.
     - Create precise cards with concrete task descriptions (body).
-    - Every piece of work: worker → reviewer → human-taste+verifier.
+    - Every piece of work: worker → reviewer → aa-human-taste+verifier.
     - You are quadriplegic. Strength is in orchestration, not execution.
 
     ═══ HUMAN-TASTE EXECUTION ═══
@@ -367,7 +368,7 @@ agent:
        make decisions until HELP_NEEDED.md is cleared.
 
     ═══ SLOP-POLISH (after APPROVE with flags) ═══
-    When human-taste or reviewer APPROVES but flags specific issues —
+    When aa-human-taste or reviewer APPROVES but flags specific issues —
     do NOT ignore them. After phase completion and APPROVE verification,
     create a "polish" card for aa-worker with priority=0 containing ALL
     unfixed flags as a checklist. This doesn't block the pipeline.
@@ -442,7 +443,7 @@ agent:
   max_turns: 30
   reasoning_effort: xhigh
   system_prompt: |
-    You are a human-taste evaluator. Your job: detect AI-generated slop
+    You are a aa-human-taste evaluator. Your job: detect AI-generated slop
     and verify the output reads as if a skilled human produced it.
 
     DIMENSIONS (1-10 each):
@@ -512,12 +513,12 @@ agent:
   max_turns: 30
   reasoning_effort: xhigh
   system_prompt: |
-    You are taste-escalator — decide whether a task/decision needs real user input.
+    You are aa-escalator — decide whether a task/decision needs real user input.
 
     EVALUATE THREE DIMENSIONS (1-5 each):
     1. IMPACT — How big is the impact? (1=trivial, 5=core architecture)
     2. REVERSIBILITY — Can it be safely undone? (1=irreversible, 5=git revert)
-    3. SIM_CONFIDENCE — How adequate is human-taste/verifier simulation?
+    3. SIM_CONFIDENCE — How adequate is aa-human-taste/verifier simulation?
        (1=new territory, 5=well-known pattern)
 
     DECISION RULES (deterministic):
@@ -597,13 +598,67 @@ terminal:
 memory:
   memory_enabled: false</code></pre>
 
+<h4>aa-comms</h4>
+<pre><code>provider: {PROVIDER_BALANCED}
+model: {MODEL_BALANCED}
+toolsets:
+  - file
+agent:
+  max_turns: 30
+  system_prompt: |
+    You are aa-comms — the user-facing communication interface for the
+    autonomous agent system. You bridge the autonomous system (orchestrator,
+    workers, pipeline) and the human user via their messaging platform.
+
+    ═══ YOUR ROLE ═══
+    You are NOT an orchestrator. You do NOT create kanban cards, delegate
+    tasks, execute goals, or make autonomous decisions.
+    Your ONLY tool is file (read/write). No terminal, no web, no kanban.
+
+    ═══ HELP_NEEDED.md BRIDGE ═══
+    When HELP_NEEDED.md is non-empty:
+    1. Read the full content — it contains a question/blocker from the
+       autonomous orchestrator
+    2. Deliver the question to the user verbatim with context
+    3. When the user responds, write their response to HELP_NEEDED.md
+       (overwriting the old content with the answer, clearing the file)
+    4. The monitor script then delivers it to the orchestrator on the
+       next tick
+
+    ═══ STATUS QUERIES ═══
+    When the user asks about system status:
+    1. Read STATUS.md — current state
+    2. Read LOG.md — recent decisions
+    3. Read the kanban board list if available
+    4. Provide a concise, human-readable summary
+
+    ═══ GOAL MODIFICATION ═══
+    When the user asks to modify GOAL.md:
+    1. Read the current GOAL.md
+    2. Apply the requested changes
+    3. Confirm what was changed
+    4. Do NOT evaluate feasibility — that is the orchestrator's job
+
+    ═══ CONSTRAINTS ═══
+    - File access is limited to ~/autonomous-agent/ directory
+    - No kanban access, no terminal, no web, no code_execution
+    - memory: false (each conversation is standalone)
+    - English only
+    - Be direct and clear — the user is reading this on their messaging
+      platform, not a terminal
+terminal:
+  backend: local
+  cwd: {HOME}/autonomous-agent/
+memory:
+  memory_enabled: false</code></pre>
+
 <h3>2.4 Post-creation verification</h3>
 <pre><code># Verify all profiles exist
 hermes profile list | grep aa-
 
-# Expected: 8 profiles
+# Expected: 9 profiles
 # aa-orchestrator, aa-worker, aa-reviewer, aa-human-taste,
-# aa-verifier, aa-escalator, aa-thinker, aa-goalkeeper
+# aa-verifier, aa-escalator, aa-comms, aa-thinker, aa-goalkeeper
 
 # Ensure orchestrator is the active profile for the state directory
 # NOT needed — cron jobs set the profile explicitly</code></pre>
@@ -837,7 +892,7 @@ fi</code></pre>
 
 <h2>Phase 4 — Cron Jobs</h2>
 
-<p>Create 8 cron jobs. All run under the <code>aa-orchestrator</code> profile. Distinguish between LLM jobs (consume tokens) and no-agent jobs (zero tokens).</p>
+<p>Create 8 cron jobs on the <code>aa-orchestrator</code> profile and 1 cron job on the <code>aa-comms</code> profile. Distinguish between LLM jobs (consume tokens) and no-agent jobs (zero tokens).</p>
 
 <div class="decision">
 <strong>Messaging delivery:</strong> Use the platform + chat_id from Phase 0.3 discovery.
@@ -855,6 +910,9 @@ ELSE: <code>--deliver local</code> for all jobs.
 <tr><td>cleanup-agent</td><td><code>0 */6 * * *</code></td><td>cleanup.sh</td><td>no-agent</td><td>0</td><td>messaging</td></tr>
 <tr><td>daily-research</td><td><code>0 18 * * *</code></td><td>research_context.sh</td><td>LLM</td><td>~2000/tick</td><td>local</td></tr>
 <tr><td>research-proposal-reporter</td><td><code>30 18 * * *</code></td><td>research_proposal_reporter.sh</td><td>no-agent</td><td>0</td><td>messaging</td></tr>
+<tr><td colspan="6" style="border: none; padding: 4px;"></td></tr>
+<tr><th style="color: var(--ok);">aa-comms (profile)</th><th></th><th></th><th></th><th></th><th></th></tr>
+<tr><td>check-help-needed</td><td><code>*/30 * * * *</code></td><td>check_help_needed.sh</td><td>no-agent</td><td>0</td><td>messaging</td></tr>
 </table>
 
 <pre><code>HERMES_BIN="{HERMES_INSTALL}/venv/bin/hermes"
@@ -917,6 +975,15 @@ $HERMES_BIN -p $PROFILE cron create \
   --deliver $DELIVER_MSG \
   "research-proposal-reporter"</code></pre>
 
+<p><strong>aa-comms cron job:</strong> create this under the <code>aa-comms</code> profile:</p>
+<pre><code>HERMES_BIN=\"{HERMES_INSTALL}/venv/bin/hermes\"
+$HERMES_BIN -p aa-comms cron create \
+  --schedule "*/30 * * * *" \
+  --script check_help_needed.sh \
+  --no-agent \
+  --deliver $DELIVER_MSG \
+  "HELP_NEEDED monitor"</code></pre>
+
 <div class="warn">
 ⚠️ FOR EACH cron create command: first check from Phase 0.5 whether a cron job with the same name already exists. If it does, use a different name or ask the user.
 </div>
@@ -939,11 +1006,12 @@ hermes -p aa-orchestrator cron status
 
 <h3>6.1 Profile verification</h3>
 <pre><code>hermes profile list | grep aa-
-# Expected: 8 profiles listed</code></pre>
+# Expected: 9 profiles listed</code></pre>
 
 <h3>6.2 Cron verification</h3>
 <pre><code>hermes -p aa-orchestrator cron list
-# Expected: 8 jobs, all active, with "Next run" timestamps</code></pre>
+# Expected: 8 jobs on aa-orchestrator, all active, with "Next run" timestamps
+# Plus 1 job on aa-comms profile</code></pre>
 
 <h3>6.3 Kanban verification</h3>
 <pre><code>hermes -p aa-orchestrator kanban list
@@ -965,8 +1033,9 @@ cat {HOME}/autonomous-agent/STATUS.md
 <h3>6.6 Final checklist</h3>
 <table>
 <tr><th>Item</th><th>Command</th><th>Expected</th></tr>
-<tr><td>Profiles exist</td><td><code>hermes profile list | grep aa- | wc -l</code></td><td>8</td></tr>
-<tr><td>Cron jobs active</td><td><code>hermes -p aa-orchestrator cron list | grep -c "Next run"</code></td><td>8</td></tr>
+<tr><td>Profiles exist</td><td><code>hermes profile list | grep aa- | wc -l</code></td><td>9</td></tr>
+<tr><td>Cron jobs active (aa-orchestrator)</td><td><code>hermes -p aa-orchestrator cron list | grep -c "Next run"</code></td><td>8</td></tr>
+<tr><td>Cron jobs active (aa-comms)</td><td><code>hermes -p aa-comms cron list | grep -c "Next run"</code></td><td>1</td></tr>
 <tr><td>Gateway active</td><td><code>systemctl --user is-active hermes-gateway-*</code></td><td>active</td></tr>
 <tr><td>State directory ready</td><td><code>test -f {HOME}/autonomous-agent/GOAL.md && echo ok</code></td><td>ok</td></tr>
 <tr><td>Scripts executable</td><td><code>test -x {HOME}/.hermes/profiles/aa-orchestrator/scripts/state_context.sh && echo ok</code></td><td>ok</td></tr>
@@ -1022,7 +1091,7 @@ from discovery data, not assumed.
   <li><strong>Home directory</strong> — <code>$HOME</code> always. Never hardcode <code>/home/username</code>.</li>
   <li><strong>Working directory</strong> — <code>$HOME/workspace</code> if it exists, otherwise <code>$HOME</code>.</li>
   <li><strong>Max turns per profile</strong> — adjust based on user's model tier. Strong models can have more turns.</li>
-  <li><strong>Model choice for BALANCED tier</strong> — if user has only 2 providers, use the cheaper one for BALANCED to save tokens.</li>
+  <li><strong>Model choice for BALANCED tier</strong> — if user has only 2 providers, use the cheaper one for BALANCED to save tokens. Note: aa-comms uses BALANCED tier but only needs the <code>file</code> toolset — it has no kanban, terminal, or web access, and is intentionally the least privileged profile.</li>
 </ol>
 
 <h3>What to NEVER do</h3>
@@ -1036,7 +1105,7 @@ from discovery data, not assumed.
 </ul>
 
 <p style="margin-top:48px; padding-top:16px; border-top:1px solid var(--border); color:#8b949e; font-size:0.9em;">
-Autonomy Hermes System — v1.0 — <a href="https://github.com/Rybens92/autonomy-hermes-system">github.com/Rybens92/autonomy-hermes-system</a>
+Autonomy Hermes System — v1.1 — <a href="https://github.com/Rybens92/autonomy-hermes-system">github.com/Rybens92/autonomy-hermes-system</a>
 </p>
 
 </body>

@@ -26,5 +26,5 @@ Catches hallucinations, factual errors, inconsistencies, incompleteness, and sco
 
 ## Modification Notes
 - If the verifier is too strict (REJECTs everything), reduce to "2+ REJECTs = overall REJECT"
-- The adversarial check is the most valuable dimension — it catches what human-taste misses
+- The adversarial check is the most valuable dimension — it catches what aa-human-taste misses
 - Consider adding `terminal` toolset if verification requires running the code
