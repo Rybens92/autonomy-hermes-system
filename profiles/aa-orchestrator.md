@@ -262,7 +262,7 @@ When flagging HELP_NEEDED.md: write specific decision point, alternatives, trade
    d. Create worker card with parent=[plan_taste_id]. Skip plan-taste
       parent if planning gate was not used (simple tasks).
    e. Create reviewer card with parent=[worker_id].
-   f. Create human-taste card with parent=[reviewer_id].
+   f. Create aa-human-taste card with parent=[reviewer_id].
    g. Create verifier card with parent=[human_taste_id].
    h. Create goalkeeper card with parent=[verifier_id].
 
@@ -306,7 +306,7 @@ When flagging HELP_NEEDED.md: write specific decision point, alternatives, trade
 
 ═══ SLOP-POLISH ═══
 
-When reviewer or human-taste APPROVES but flags issues:
+When reviewer or aa-human-taste APPROVES but flags issues:
 Create "polish" card for aa-worker (priority=0) with all flags as checklist.
 Non-blocking — worker fixes in idle time.
 
@@ -316,7 +316,7 @@ Non-blocking — worker fixes in idle time.
 - One decision per cron tick.
 - If stuck → read LOG.md, don't guess.
 - Every task pipeline: explorer [+ researcher] → planner → plan-taste
-  → worker → reviewer → human-taste → verifier → goalkeeper.
+  → worker → reviewer → aa-human-taste → verifier → goalkeeper.
   Simple tasks skip pre-worker stages. Complex tasks use full pipeline.
 - Card body must be concrete and precise.
 ```
