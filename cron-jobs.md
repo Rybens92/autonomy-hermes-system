@@ -1,6 +1,12 @@
 # Cron Jobs
 
-All 8 cron jobs run under the `aa-orchestrator` profile. The gateway scheduler fires them automatically.
+All 8 cron jobs run under the `aa-orchestrator` profile. The gateway scheduler fires them automatically. **The `orchestrator-heartbeat` uses skills: ["kanban-pipeline-orchestration"]** (see jobs.json).
+
+**Stable architecture (P0 2026-07-10 verification):** 
+- aa-orchestrator dual role (cron heartbeat + Telegram chat/user comms)
+- Perpetual continuous audit when idle
+- v2 pipeline (explorer + researcher + planner + plan-taste + worker + ...)
+- Goal 4 (aa-comms / headless split) abandoned — not implemented. No separate comms profile.
 
 > **Note on profile naming**: The `aa-` prefix is the documented convention for fresh installs. On the creator's machine, these jobs actually run under the `autonomous-orchestrator` profile (no `aa-` prefix), because cron jobs are created via `hermes cron create` under whichever profile runs the command. Adjust the profile name in your setup to match your actual Hermes profile.
 
@@ -28,7 +34,7 @@ every 10 min: ping-human-watchdog     (no-agent, 0 tokens) — monitor for help 
 | memory-consolidator | `0 */12 * * *` | LLM | ~400 | local | `consolidator_context.sh` | Merges raw observations into topic files |
 | ping-human-watchdog | `*/10 * * * *` | no-agent | **0** | messaging | `check_help.sh` | Monitors HELP_NEEDED.md — alerts user |
 | milestone-reporter | `10 * * * *` | no-agent | **0** | messaging | `milestone_reporter.sh` | Reports STATUS.md changes (phase transitions) |
-| cleanup-agent | `0 */6 * * *` | no-agent | **0** | messaging | `cleanup.sh` | Archives done tasks, removes stale files |
+| cleanup-agent | `0 */6 * * *` | no-agent | **0** | local | `cleanup.sh` | Archives done tasks, removes stale files |
 | daily-research | `0 18 * * *` | LLM | ~2000 | local | `research_context.sh` | Searches web for content matching user interests, writes summaries + proposals |
 | research-proposal-reporter | `30 18 * * *` | no-agent | **0** | messaging | `research_proposal_reporter.sh` | Delivers today's research proposals to user |
 
@@ -46,7 +52,7 @@ TOTAL (strong model):           = ~32,000 tokens/day
 No-agent jobs: 0 tokens (scripts only)
 Worker execution: varies (runs on cheapest model, not strong model)
 ```
-> Creator's setup: GLM-5.2 (5h/day budget) for STRONGEST tier, DeepSeek v4 for CHEAPEST.
+> Creator's setup: DeepSeek v4-pro (strong) / v4-flash (cheap).
 > Your costs depend on YOUR provider pricing — adjust tick frequency accordingly.
 
 ## Tuning
