@@ -2,64 +2,523 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Autonomy Hermes System — AI Agent Installation Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0d1117;
-    --fg: #c9d1d9;
-    --border: #30363d;
-    --code-bg: #161b22;
-    --link: #58a6ff;
+    --bg: #0b0e14;
+    --bg-alt: #11161f;
+    --bg-code: #0f141e;
+    --surface: #161c27;
+    --surface-hover: #1c2331;
+    --border: #262e3b;
+    --border-light: #1e2632;
+    --fg: #d1d5db;
+    --fg-dim: #8b949e;
+    --fg-bright: #f0f2f5;
+    --accent: #58a6ff;
+    --accent-glow: rgba(88, 166, 255, 0.15);
     --phase: #f0883e;
+    --phase-glow: rgba(240, 136, 62, 0.12);
     --cmd: #7ee787;
     --warn: #d29922;
+    --warn-bg: rgba(210, 153, 34, 0.08);
     --err: #f85149;
     --ok: #3fb950;
+    --gradient-header: linear-gradient(135deg, #f0883e 0%, #e06b3a 50%, #c94b3a 100%);
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    --radius: 8px;
+    --radius-sm: 4px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+    --toc-width: 260px;
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; font-size: 15px; }
+
   body {
-    background: var(--bg); color: var(--fg);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 15px; line-height: 1.6; max-width: 960px;
-    margin: 0 auto; padding: 40px 24px;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font);
+    line-height: 1.7;
+    display: flex;
+    min-height: 100vh;
   }
-  h1 { color: var(--fg); font-size: 2em; margin: 0 0 8px 0; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
-  h2 { color: var(--phase); font-size: 1.4em; margin: 40px 0 12px 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-  h3 { color: var(--fg); font-size: 1.1em; margin: 24px 0 8px 0; }
+
+  /* ── TOC Sidebar ── */
+  nav.toc {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--toc-width);
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--bg-alt);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    z-index: 100;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  nav.toc::-webkit-scrollbar { width: 4px; }
+  nav.toc::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  nav.toc .toc-title {
+    font-size: 0.85em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-dim);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  nav.toc a {
+    display: block;
+    padding: 4px 0 4px 12px;
+    font-size: 0.82em;
+    color: var(--fg-dim);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.15s ease;
+    margin-bottom: 2px;
+  }
+
+  nav.toc a:hover,
+  nav.toc a.active {
+    color: var(--fg-bright);
+    border-left-color: var(--accent);
+    background: var(--accent-glow);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+
+  nav.toc a.h2 { padding-left: 12px; }
+  nav.toc a.h3 { padding-left: 24px; font-size: 0.78em; }
+  nav.toc a.h4 { padding-left: 34px; font-size: 0.75em; color: var(--fg-dim); }
+
+  /* ── Main Content ── */
+  main {
+    margin-left: var(--toc-width);
+    flex: 1;
+    max-width: 880px;
+    padding: 48px 40px 80px;
+  }
+
+  h1 {
+    font-size: 2.2em;
+    font-weight: 800;
+    color: var(--fg-bright);
+    margin: 0 0 6px 0;
+    line-height: 1.2;
+  }
+
+  h1 small {
+    display: block;
+    font-size: 0.45em;
+    font-weight: 500;
+    color: var(--fg-dim);
+    margin-top: 4px;
+  }
+
+  h1 .subtitle {
+    display: block;
+    font-size: 0.55em;
+    font-weight: 500;
+    background: var(--gradient-header);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-top: 8px;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 24px;
+    margin: 16px 0 32px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .hero-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .hero-meta-item .label {
+    font-size: 0.72em;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--fg-dim);
+    font-weight: 600;
+  }
+
+  .hero-meta-item .value {
+    font-size: 0.95em;
+    font-weight: 600;
+    color: var(--fg-bright);
+  }
+
+  .hero-meta-item .value strong { color: var(--phase); }
+
+  h2 {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--fg-bright);
+    margin: 48px 0 16px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  h2::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: var(--gradient-header);
+    border-radius: 1px;
+  }
+
+  h3 {
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--fg-bright);
+    margin: 32px 0 12px 0;
+  }
+
+  h4 {
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--phase);
+    margin: 24px 0 8px 0;
+  }
+
   p, li { margin: 0 0 12px 0; }
   ul, ol { margin: 0 0 16px 0; padding-left: 24px; }
-  a { color: var(--link); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; overflow-x: auto; margin: 0 0 16px 0; font-size: 13px; line-height: 1.5; }
-  pre code { background: none; padding: 0; }
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  a:hover { color: #79b8ff; text-decoration: underline; }
+
+  code {
+    background: var(--bg-code);
+    padding: 2px 7px;
+    border-radius: var(--radius-sm);
+    font-family: var(--mono);
+    font-size: 0.85em;
+    color: var(--cmd);
+    border: 1px solid var(--border-light);
+  }
+
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 0 0 18px 0;
+    font-family: var(--mono);
+    font-size: 0.82em;
+    line-height: 1.55;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+    position: relative;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    border: none;
+    color: var(--fg);
+    font-size: inherit;
+  }
+
   .cmd { color: var(--cmd); }
-  .warn { color: var(--warn); font-weight: bold; }
+  .warn { color: var(--warn); }
   .err { color: var(--err); }
   .ok { color: var(--ok); }
-  .decision { background: #1a1d21; border-left: 3px solid var(--phase); padding: 12px 18px; margin: 16px 0; border-radius: 0 6px 6px 0; }
-  .decision::before { content: "🤔 DECISION TREE: "; color: var(--phase); font-weight: bold; }
+
+  /* ── Decision Card ── */
+  .decision {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--phase);
+    padding: 18px 22px;
+    margin: 20px 0;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .decision:hover {
+    border-left-color: #f5a55a;
+    box-shadow: var(--shadow-lg), var(--phase-glow);
+  }
+
+  .decision::before {
+    content: "🤔 DECISION TREE: ";
+    color: var(--phase);
+    font-weight: 700;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .decision.warn-card {
+    border-left-color: var(--warn);
+    background: var(--warn-bg);
+  }
+
+  .decision.warn-card:hover {
+    border-left-color: #e8b84a;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .decision.warn-card::before {
+    content: "⚠️ WARNING: ";
+    color: var(--warn);
+  }
+
   .check { color: var(--ok); }
   .cross { color: var(--err); }
-  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
-  th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
-  th { background: var(--code-bg); }
-  .step-num { display: inline-block; background: var(--phase); color: #000; border-radius: 50%; width: 22px; height: 22px; text-align: center; font-size: 12px; font-weight: bold; line-height: 22px; margin-right: 6px; }
+
+  /* ── Tables ── */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0;
+    font-size: 0.9em;
+  }
+
+  th, td {
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background: var(--surface);
+    font-weight: 600;
+    color: var(--fg-bright);
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  tr:hover td {
+    background: var(--surface-hover);
+  }
+
+  /* ── Step Numbers ── */
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-header);
+    color: #000;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 24px;
+    margin-right: 7px;
+    flex-shrink: 0;
+  }
+
+  /* ── Phase Headers ── */
+  .phase-badge {
+    display: inline-block;
+    background: var(--phase-glow);
+    color: var(--phase);
+    font-weight: 700;
+    font-size: 0.7em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(240, 136, 62, 0.25);
+    margin-bottom: 6px;
+  }
+
+  /* ── Tags ── */
+  .tag {
+    display: inline-block;
+    background: var(--accent-glow);
+    color: var(--accent);
+    font-size: 0.72em;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(88, 166, 255, 0.2);
+    margin: 0 2px;
+  }
+
+  .tag-str { background: rgba(240, 136, 62, 0.12); color: var(--phase); border-color: rgba(240, 136, 62, 0.2); }
+  .tag-cheap { background: rgba(126, 231, 135, 0.12); color: var(--cmd); border-color: rgba(126, 231, 135, 0.2); }
+  .tag-bal { background: rgba(88, 166, 255, 0.12); color: var(--accent); border-color: rgba(88, 166, 255, 0.2); }
+
+  /* ── Profile Sub-sections ── */
+  .profile-section {
+    margin: 20px 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--surface);
+    cursor: default;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .profile-header h4 {
+    margin: 0;
+    color: var(--fg-bright);
+  }
+
+  .profile-header .tier-tag {
+    font-size: 0.7em;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .tier-strong { background: rgba(240, 136, 62, 0.12); color: var(--phase); border: 1px solid rgba(240, 136, 62, 0.2); }
+  .tier-cheap { background: rgba(126, 231, 135, 0.12); color: var(--cmd); border: 1px solid rgba(126, 231, 135, 0.2); }
+  .tier-bal { background: rgba(88, 166, 255, 0.12); color: var(--accent); border: 1px solid rgba(88, 166, 255, 0.2); }
+
+  .profile-section pre {
+    border: none;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  section[id] {
+    animation: fadeInUp 0.4s ease both;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    body { flex-direction: column; }
+    nav.toc {
+      position: relative;
+      width: 100%;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      padding: 16px;
+      max-height: 200px;
+    }
+    main {
+      margin-left: 0;
+      padding: 24px 20px 60px;
+    }
+    .hero-meta { flex-wrap: wrap; gap: 12px; }
+    table { font-size: 0.82em; }
+    th, td { padding: 8px 10px; }
+  }
+
+  @media (max-width: 600px) {
+    main { padding: 16px 12px 40px; }
+    h1 { font-size: 1.6em; }
+    h2 { font-size: 1.25em; }
+    pre { font-size: 0.75em; padding: 12px 14px; }
+  }
 </style>
 </head>
 <body>
 
-<h1>🔄 Autonomy Hermes System<br><small style="font-size:0.5em;color:#8b949e;">AI Agent Installation Guide — v1.0</small></h1>
+<!-- ── TOC Sidebar ── -->
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#phase-0" class="h2">Phase 0 — Discovery</a>
+  <a href="#p0.1" class="h3">0.1 Profile discovery</a>
+  <a href="#p0.2" class="h3">0.2 Provider &amp; model</a>
+  <a href="#p0.3" class="h3">0.3 Messaging platform</a>
+  <a href="#p0.4" class="h3">0.4 Gateway check</a>
+  <a href="#p0.5" class="h3">0.5 Existing cron jobs</a>
+  <a href="#p0.6" class="h3">0.6 Home directory</a>
+  <a href="#phase-1" class="h2">Phase 1 — State Directory</a>
+  <a href="#phase-2" class="h2">Phase 2 — Profile Creation</a>
+  <a href="#p2.1" class="h3">2.1 Profile mapping table</a>
+  <a href="#p2.2" class="h3">2.2 Config template</a>
+  <a href="#p2.3" class="h3">2.3 Detailed prompts</a>
+  <a href="#p2.4" class="h3">2.4 Post-creation verification</a>
+  <a href="#phase-3" class="h2">Phase 3 — Scripts</a>
+  <a href="#phase-4" class="h2">Phase 4 — Cron Jobs</a>
+  <a href="#phase-5" class="h2">Phase 5 — Gateway</a>
+  <a href="#phase-6" class="h2">Phase 6 — Verification</a>
+  <a href="#troubleshooting" class="h2">Troubleshooting</a>
+  <a href="#adaptation" class="h2">Adaptation Guidelines</a>
+</nav>
 
-<p><strong>Target audience:</strong> AI agents (Hermes, Claude Code, Codex, OpenCode) that need to replicate this autonomous agent system on a user's machine.<br>
-<strong>Goal:</strong> Install 8 specialized profiles, 8 cron jobs, 8 scripts, and a state directory — without breaking anything the user already has.</p>
+<!-- ── Main ── -->
+<main>
+
+<h1>🔄 Autonomy Hermes System
+  <span class="subtitle">AI Agent Installation Guide for Multi-Profile Autonomous Pipelines</span>
+</h1>
+
+<div class="hero-meta">
+  <div class="hero-meta-item">
+    <span class="label">Version</span>
+    <span class="value">v1.0</span>
+  </div>
+  <div class="hero-meta-item">
+    <span class="label">Profiles</span>
+    <span class="value"><strong>11</strong> specialized</span>
+  </div>
+  <div class="hero-meta-item">
+    <span class="label">Cron Jobs</span>
+    <span class="value"><strong>8</strong> scheduled</span>
+  </div>
+  <div class="hero-meta-item">
+    <span class="label">Scripts</span>
+    <span class="value"><strong>8</strong> support</span>
+  </div>
+  <div class="hero-meta-item">
+    <span class="label">For</span>
+    <span class="value">Hermes / Claude Code / Codex / OpenCode</span>
+  </div>
+</div>
+
+<p><strong>Target audience:</strong> AI agents that need to replicate this autonomous agent system on a user's machine.<br>
+<strong>Goal:</strong> Install 11 specialized profiles, 8 cron jobs, 8 scripts, and a state directory — without breaking anything the user already has.</p>
 
 <div class="decision">
 This guide is a <strong>decision tree</strong>, not a recipe. At every step, you MUST discover what the user already has and adapt. Never assume. Never overwrite.
 </div>
 
-<div class="decision" style="border-left-color: var(--warn);">
-<strong>⚠️ WHEN IN DOUBT, ASK THE USER</strong><br>
+<div class="decision warn-card">
+<strong>WHEN IN DOUBT, ASK THE USER</strong><br>
 This is the most important rule in this guide. You are not expected to guess.<br><br>
 <strong>Ask the user when:</strong>
 <ul>
@@ -72,15 +531,22 @@ This is the most important rule in this guide. You are not expected to guess.<br
 </ul>
 <strong>How to ask (be specific):</strong>
 <ul>
-  <li>❌ "What should I do?"</li>
-  <li>✅ "I need to choose between X and Y for the orchestrator model. X = faster but dumber. Y = slower but smarter. Which do you prefer?"</li>
+  <li><span class="cross">✗</span> "What should I do?"</li>
+  <li><span class="ok">✓</span> "I need to choose between X and Y for the orchestrator model. X = faster but dumber. Y = slower but smarter. Which do you prefer?"</li>
   <li>Always present <strong>concrete alternatives</strong> with trade-offs explained</li>
 </ul>
 </div>
 
-<h2>Phase 0 — Discovery</h2>
-<p>Before creating anything, discover the user's environment. This determines every subsequent decision.</p>
+<!-- ════════════════════════════════════════════════ -->
+<!-- PHASE 0 -->
+<!-- ════════════════════════════════════════════════ -->
 
+<section id="phase-0">
+<h2><span class="step-num">0</span> Phase 0 — Discovery</h2>
+<p>Before creating anything, discover the user's environment. This determines every subsequent decision.</p>
+</section>
+
+<section id="p0.1">
 <h3>0.1 Profile discovery</h3>
 <pre><code>hermes profile list
 # Expected output: list of profile names
@@ -93,7 +559,9 @@ IF any profile name starts with "aa-" (e.g., aa-orchestrator, aa-worker):
   → If skip: create profiles with alternative prefix (e.g., "a2-")
   → If overwrite: proceed, but warn user
 </div>
+</section>
 
+<section id="p0.2">
 <h3>0.2 Provider and model discovery</h3>
 <pre><code>hermes config list
 # Identify: provider names, available models, API modes
@@ -101,20 +569,20 @@ IF any profile name starts with "aa-" (e.g., aa-orchestrator, aa-worker):
 # Key: which provider has the STRONGEST reasoning model?
 # Key: which provider has the CHEAPEST capable model?
 # These map to:
-#   STRONGEST → aa-orchestrator, aa-thinker
-#   CHEAPEST  → aa-worker
-#   BALANCED  → aa-reviewer, aa-human-taste, aa-verifier, aa-escalator, aa-goalkeeper</code></pre>
+#   STRONGEST → aa-orchestrator, aa-researcher, aa-planner, aa-plan-taste, aa-thinker
+#   CHEAPEST  → aa-worker, aa-explorer
+#   BALANCED  → aa-reviewer, aa-human-taste, aa-verifier, aa-goalkeeper</code></pre>
 
 <div class="decision">
 <strong>Provider mapping logic — discover, don't assume:</strong>
-<p>The project creator uses <strong>GLM-5.2 via z.ai</strong> for orchestration and <strong>DeepSeek v4 (Flash for workers, Pro for review/taste)</strong> for execution. But your user almost certainly has different providers configured.</p>
+<p>The project creator uses <strong>DeepSeek v4-pro</strong> for orchestration/review/taste and <strong>DeepSeek v4-flash</strong> for worker/explorer execution. But your user may have different providers configured — the system auto-maps.</p>
 
 <p><strong>How to choose:</strong></p>
 <ol>
   <li>Run <code>hermes tools list</code> to see configured providers and models</li>
-  <li>STRONGEST tier (orchestrator, thinker): pick the provider with the best reasoning model</li>
-  <li>CHEAPEST tier (worker): pick the provider with the cheapest capable model</li>
-  <li>BALANCED tier (reviewer, taste, verifier, escalator, goalkeeper): pick a mid-tier model</li>
+  <li>STRONGEST tier (orchestrator, researcher, planner, plan-taste, thinker): pick the provider with the best reasoning model</li>
+  <li>CHEAPEST tier (worker, explorer): pick the provider with the cheapest capable model</li>
+  <li>BALANCED tier (reviewer, taste, verifier, goalkeeper): pick a mid-tier model</li>
   <li>IF you can't determine which is best → <strong>ASK the user</strong>:
     "I need to choose models for the autonomous system. Your options:
     STRONGEST (orchestrator): [list providers with good reasoning]
@@ -124,7 +592,9 @@ IF any profile name starts with "aa-" (e.g., aa-orchestrator, aa-worker):
   <li>IF only ONE provider is configured → use it for all tiers, picking the strongest available model for STRONGEST, cheapest for CHEAPEST</li>
 </ol>
 </div>
+</section>
 
+<section id="p0.3">
 <h3>0.3 Messaging platform discovery</h3>
 <pre><code>hermes channels
 # OR
@@ -142,23 +612,35 @@ ELSE:
   → Add warning in STATUS.md: "No messaging platform configured. Check ~/autonomous-agent/STATUS.md manually."
   → Still create the system — user can configure messaging later
 </div>
+</section>
 
+<section id="p0.4">
 <h3>0.4 Gateway check</h3>
 <pre><code>systemctl --user is-active hermes-gateway-*
 # OR
 hermes gateway status
 # Must be active. Cron jobs depend on the gateway for scheduling.</code></pre>
+</section>
 
+<section id="p0.5">
 <h3>0.5 Existing cron job discovery</h3>
 <pre><code>hermes cron list
 # Store the list. You will check against it in Phase 4.</code></pre>
+</section>
 
+<section id="p0.6">
 <h3>0.6 Home directory resolution</h3>
 <pre><code>echo $HOME
 # Store as {HOME}. All paths derive from this.
 # Typical: /home/username on Linux, /Users/username on macOS</code></pre>
+</section>
 
-<h2>Phase 1 — State Directory</h2>
+<!-- ════════════════════════════════════════════════ -->
+<!-- PHASE 1 -->
+<!-- ════════════════════════════════════════════════ -->
+
+<section id="phase-1">
+<h2><span class="step-num">1</span> Phase 1 — State Directory</h2>
 <p>Create the autonomous agent state directory that holds goals, logs, and research.</p>
 
 <h3>1.1 Create directories</h3>
@@ -213,43 +695,118 @@ EOF
 
 # Topic index (prevents duplicate research)
 touch {HOME}/autonomous-agent/research/topic-index.md</code></pre>
+</section>
 
-<h2>Phase 2 — Profile Creation</h2>
+<!-- ════════════════════════════════════════════════ -->
+<!-- PHASE 2 -->
+<!-- ════════════════════════════════════════════════ -->
 
-<p>Create 8 profiles. Each profile has a specific role in the autonomous pipeline. Use the <code>aa-</code> prefix to avoid conflicts.</p>
+<section id="phase-2">
+<h2><span class="step-num">2</span> Phase 2 — Profile Creation</h2>
 
-<div class="warn">
+<p>Create 11 profiles. Each profile has a specific role in the autonomous pipeline. Use the <code>aa-</code> prefix to avoid conflicts.</p>
+
+<div class="decision warn-card">
 ⚠️ BEFORE creating each profile: check that the name doesn't exist from Phase 0.1. If it exists, use alternative prefix.
 </div>
 
-<h3>2.1 Profile mapping table</h3>
+<h3 id="p2.1">2.1 Profile mapping table</h3>
 
 <table>
-<tr><th>Profile name</th><th>Role</th><th>Model tier</th><th>Toolsets</th><th>Needs kanban?</th></tr>
-<tr><td>aa-orchestrator</td><td>Decision maker, card creator</td><td>STRONGEST reasoning</td><td>file, kanban</td><td>Yes</td></tr>
-<tr><td>aa-worker</td><td>Task execution (code, terminal)</td><td>CHEAPEST capable</td><td>terminal, file, web, code_execution</td><td>Yes</td></tr>
-<tr><td>aa-reviewer</td><td>Code quality review</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
-<tr><td>aa-human-taste</td><td>AI slop detection, human-like judgment</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
-<tr><td>aa-verifier</td><td>Fact/hallucination check</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
-<tr><td>aa-escalator</td><td>Meta: ask user or proceed?</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
-<tr><td>aa-thinker</td><td>Architecture, deep reasoning</td><td>STRONGEST reasoning</td><td>terminal, file, web, code_execution</td><td>Yes</td></tr>
-<tr><td>aa-goalkeeper</td><td>Global goal achievement check</td><td>BALANCED</td><td>file, web</td><td>Yes</td></tr>
+<tr><th>Profile</th><th>Role</th><th>Model tier</th><th>Toolsets</th><th>Kanban?</th></tr>
+<tr>
+  <td><code>aa-orchestrator</code></td>
+  <td>Decision maker, card creator</td>
+  <td><span class="tag tag-str">STRONGEST</span></td>
+  <td>file, kanban</td>
+  <td>Yes</td>
+</tr>
+<tr>
+  <td><code>aa-explorer</code></td>
+  <td>Filesystem discovery, codebase mapping</td>
+  <td><span class="tag tag-cheap">CHEAPEST</span></td>
+  <td>file, web</td>
+  <td>Yes</td>
+</tr>
+<tr>
+  <td><code>aa-researcher</code></td>
+  <td>Web research, prior art, fact-checking</td>
+  <td><span class="tag tag-str">STRONGEST</span></td>
+  <td>web, browser, file</td>
+  <td>Yes</td>
+</tr>
+<tr>
+  <td><code>aa-planner</code></td>
+  <td>Task decomposition → step-by-step plan</td>
+  <td><span class="tag tag-str">STRONGEST</span></td>
+  <td>file, web</td>
+  <td>Yes</td>
+</tr>
+<tr>
+  <td><code>aa-plan-taste</code></td>
+  <td>Plan verification — human-like judgment</td>
+  <td><span class="tag tag-str">STRONGEST</span></td>
+  <td>file, web</td>
+  <td>Yes</td>
+</tr>
+<tr>
+  <td><code>aa-worker</code></td>
+  <td>Task execution (code, terminal)</td>
+  <td><span class="tag tag-cheap">CHEAPEST</span></td>
+  <td>terminal, file, web, code_exec, kanban</td>
+  <td>Yes</td>
+</tr>
+<tr>
+  <td><code>aa-reviewer</code></td>
+  <td>Code quality review</td>
+  <td><span class="tag tag-bal">BALANCED</span></td>
+  <td>file, web</td>
+  <td>Yes</td>
+</tr>
+<tr>
+  <td><code>aa-human-taste</code></td>
+  <td>AI slop detection, human-like judgment</td>
+  <td><span class="tag tag-bal">BALANCED</span></td>
+  <td>file, web</td>
+  <td>Yes</td>
+</tr>
+<tr>
+  <td><code>aa-verifier</code></td>
+  <td>Fact/hallucination check</td>
+  <td><span class="tag tag-bal">BALANCED</span></td>
+  <td>file, web</td>
+  <td>Yes</td>
+</tr>
+<tr>
+  <td><code>aa-thinker</code></td>
+  <td>Architecture, deep reasoning</td>
+  <td><span class="tag tag-str">STRONGEST</span></td>
+  <td>terminal, file, web, code_exec</td>
+  <td>Yes</td>
+</tr>
+<tr>
+  <td><code>aa-goalkeeper</code></td>
+  <td>Global goal achievement check</td>
+  <td><span class="tag tag-bal">BALANCED</span></td>
+  <td>file, web</td>
+  <td>Yes</td>
+</tr>
 </table>
 
 <div class="decision">
 <strong>Model tier mapping:</strong>
 <ul>
-  <li>STRONGEST reasoning = {PROVIDER_STRONG}/{MODEL_STRONG} from Phase 0.2</li>
-  <li>CHEAPEST capable = {PROVIDER_CHEAP}/{MODEL_CHEAP} from Phase 0.2</li>
-  <li>BALANCED = {PROVIDER_BALANCED}/{MODEL_BALANCED} — if user has 3+ providers, use a middle-tier one; otherwise use same as STRONGEST but a cheaper model, or CHEAPEST but a smarter model</li>
+  <li>STRONGEST reasoning = {PROVIDER_STRONG}/{MODEL_STRONG} from Phase 0.2 — for aa-orchestrator, aa-researcher, aa-planner, aa-plan-taste, aa-thinker</li>
+  <li>CHEAPEST capable = {PROVIDER_CHEAP}/{MODEL_CHEAP} from Phase 0.2 — for aa-worker, aa-explorer</li>
+  <li>BALANCED = {PROVIDER_BALANCED}/{MODEL_BALANCED} — if user has 3+ providers use a middle-tier one; otherwise use same as STRONGEST but a cheaper model, or CHEAPEST but a smarter model — for aa-reviewer, aa-human-taste, aa-verifier, aa-goalkeeper</li>
 </ul>
 </div>
 
-<h3>2.2 Profile configuration template</h3>
+<h3 id="p2.2">2.2 Profile configuration template</h3>
 
 <p>Each profile needs a <code>config.yaml</code> with this structure. Use <code>hermes profile create {name}</code> then edit the generated config.</p>
 
-<p><strong>Generic config skeleton (for BALANCED profiles: aa-reviewer, aa-human-taste, aa-verifier, aa-escalator, aa-goalkeeper):</strong></p>
+<p><strong>Generic config skeleton (for BALANCED profiles: aa-reviewer, aa-human-taste, aa-verifier, aa-goalkeeper):</strong></p>
 
 <pre><code># {HOME}/.hermes/profiles/aa-{role}/config.yaml
 provider: {PROVIDER_BALANCED}
@@ -259,7 +816,6 @@ toolsets:
   - web
 agent:
   max_turns: 30
-  reasoning_effort: xhigh
   system_prompt: |
     [Role-specific prompt — see detailed prompts below]
 kanban:
@@ -271,9 +827,13 @@ terminal:
 memory:
   memory_enabled: false</code></pre>
 
-<h3>2.3 Detailed prompts by profile</h3>
+<h3 id="p2.3">2.3 Detailed prompts by profile</h3>
 
-<h4>aa-orchestrator</h4>
+<div class="profile-section">
+<div class="profile-header">
+  <h4>aa-orchestrator</h4>
+  <span class="tier-tag tier-strong">STRONGEST</span>
+</div>
 <pre><code>provider: {PROVIDER_STRONG}
 model: {MODEL_STRONG}
 toolsets:
@@ -283,101 +843,126 @@ agent:
   max_turns: 30
   reasoning_effort: high
   system_prompt: |
-    You are an autonomous orchestrator. You do NOT write code. You do NOT use the terminal.
-    Do NOT describe what you INTEND to do — CALL the tool and DO it.
-    Your tools: file (ONLY for reading/writing state files), kanban (creating tasks for workers).
+    You are the central orchestrator of an autonomous agent system.
+    Your profile is aa-orchestrator. You operate primarily as a
+    cron-driven background agent, but also handle direct user
+    communication via Telegram. You do NOT write code or use the
+    terminal.
 
-    ═══ IDLE GUARD (check this first) ═══
-    Before making any decision, check the kanban board state in context.
-    If ALL tasks are "running" or "done" and there's nothing new to do —
-    do NOT create cards. But do NOT just idle mindlessly.
+    Your tools: file (reading/writing state files: GOAL.md, STATUS.md,
+    LOG.md, HELP_NEEDED.md) and kanban (delegating work by creating
+    cards with assignee). You do NOT have delegate_task. All execution
+    goes through kanban to worker profiles.
 
-    IDLE ≠ end of work. IDLE = reflection opportunity:
-    1. If GOAL.md tasks are IN PROGRESS (board not empty) —
-       update STATUS.md with "idle — waiting for workers" and finish.
-    2. If ALL GOAL.md tasks are COMPLETE (board empty, all done):
-       a. SELF-AUDIT: review LOG.md and STATUS.md, evaluate work quality
-          from a human perspective. What would the user do differently?
-       b. If improvements needed → create "polish" card with priority=0
-          (non-blocking, worker fixes in idle time)
-       c. If everything is well done → do NOT stay silent. ASK via
-          HELP_NEEDED.md: "GOAL.md complete. What next? Based on your
-          interests: [proposals from research/proposals/]. Should I work
-          on any of these?"
-       d. NEVER idle silently when all work is done — that wastes tokens
-          and misses opportunities.
+    ═══ DUAL ROLE ═══
 
-    ═══ HELP_NEEDED GUARD ═══
-    If HELP_NEEDED.md is non-empty in context: do NOT create cards.
-    Do NOT update STATUS.md or LOG.md. Just confirm you're waiting.
-    Save tokens — user already knows about the blocker via messaging.
-    Act ONLY if HELP_NEEDED content changed (user responded).
+    1. CRON MODE — Autonomous orchestration (hourly heartbeat):
+       Execute goals from GOAL.md by creating kanban cards, monitoring
+       progress, performing continuous audit. Work autonomously — do
+       NOT wait for user confirmation.
 
-    ═══ TASTE-ESCALATOR ═══
-    Before sensitive decisions (architecture changes, library choices,
-    significant scope changes) — before delegating:
-    1. Create a card for aa-escalator: evaluate impact(1-5),
-       reversibility(1-5), sim_confidence(1-5).
-       If impact≥3 and sim_confidence≤2 → ESCALATE to user.
-       Otherwise → DELEGATE, proceed automatically.
+    2. CHAT MODE — Direct user communication (Telegram):
+       When the user sends a message, respond directly. Read system
+       files to answer questions about status. When the user asks to
+       change goals, priorities, or settings, write to the appropriate
+       state files. Be concise and actionable.
+
+    ═══ IDLE GUARD + CONTINUOUS AUDIT ═══
+
+    The system NEVER goes truly idle — when all active work is done,
+    it continuously audits and improves completed work forever.
+
+    ═══ GOAL FRESHNESS TRACKING ═══
+
+    STATUS.md MUST maintain a Goal Tracker section with GOAL.md hash
+    and per-objective status (DONE / IN PROGRESS / NOT STARTED),
+    with card IDs for each.
+
+    ═══ DECISION TREE ═══
+
+    0. GOAL.md FRESHNESS CHECK — RUN THIS FIRST, ALWAYS.
+       a. Read GOAL.md objectives.
+       b. Read Goal Tracker in STATUS.md.
+       c. For EACH objective: does it have ≥1 kanban card?
+       d. IF any objective has ZERO cards → CREATE KANBAN CARDS
+          for it RIGHT NOW. Skip audit. New goals come first.
+       e. IF all objectives have cards → proceed.
+
+    1. Board has ready/failed WORK tasks? → act, skip audit.
+    2. Board empty + audit work remaining → run CONTINUOUS AUDIT.
+    3. Board empty + audit cycle complete → increment Cycle, reset
+       cursor, start next cycle. Perpetual improvement.
+
+    ═══ AUDIT CURSOR ═══
+
+    STATUS.md tracks: Cycle number, total done tasks, last audited
+    task ID, audited count, audit depth (cycle-specific focus).
+    One task per tick. Rotate through all done tasks infinitely.
+
+    CYCLE 1 — VERIFICATION: Do deliverables still meet requirements?
+    CYCLE 2 — QUALITY: Can output be substantially better?
+    CYCLE 3+ — DEEP IMPROVEMENT: Edge cases, synergies, alternatives
+
+    ═══ TASTE-ESCALATOR (inline — no separate profile) ═══
+
+    Before delegating sensitive work, evaluate thresholds:
+    - impact ≤ 2 OR sim_confidence ≥ 4 → DELEGATE (autonomous)
+    - impact ≥ 4 AND reversibility ≤ 2 → flag HELP_NEEDED.md
+    - impact ≥ 4 AND sim_confidence ≤ 2 → flag HELP_NEEDED.md
+    - impact ≥ 3 AND reversibility ≤ 2 → flag HELP_NEEDED.md
+    - ELSE → DELEGATE
+
+    When flagging HELP_NEEDED.md: write specific decision point,
+    alternatives, trade-offs, recommendation. Continue other work —
+    do NOT block on resolution.
 
     ═══ WORKFLOW ═══
-    1. Check idle guard
-    2. Check HELP_NEEDED guard
-    3. If work exists: evaluate via taste-escalator whether user input needed
-    4. Create kanban card with kanban_create, assigning to the right profile.
-       CRITICAL: EVERY card MUST have:
-       - workspace_kind: "dir"
-       - workspace_path: the project path from PROJECT.md (injected in context)
-       - assignee: profile name (NEVER omit — tasks without assignee never run)
-       - body: full task description with acceptance criteria
-       Profile to use:
-       - aa-worker: task execution (code, terminal, research)
-       - aa-reviewer: technical quality assessment (0-10, approve/reject)
-       - aa-human-taste: human-like quality, AI-slop detection
-       - aa-verifier: hallucinations, facts, adversarial check
-       - aa-escalator: meta-decision whether real user input needed
-       - aa-thinker: hard problems (architecture, deep reasoning)
-       - aa-goalkeeper: global assessment whether goal achieved
-    5. write_file: update STATUS.md (new state)
-    6. write_file: append to LOG.md: [TIMESTAMP] [DECISION] description
-    7. If completely blocked → write_file to HELP_NEEDED.md and exit
+
+    0. PRE-FLIGHT: verify workspace_path exists before routing.
+    1. GOAL SCANNING: new objectives → create worker/thinker card.
+    2. ROUTING: determine pre-worker stages (explorer, researcher,
+       planner, plan-taste, or skip to worker/thinker).
+    3. PLANNING GATE: plan-taste APPROVE/REVISE/REJECT.
+    4. PIPELINE CHAINING: create full chain in one tick using
+       parent dependencies (explorer → planner → plan-taste →
+       worker → reviewer → taste → verifier → goalkeeper).
+    5. Evaluate via taste-escalator → escalate to user or delegate.
+    6. Update STATUS.md (write_file).
+    7. Append LOG.md: [TIMESTAMP] [DECISION] description.
+    8. Blocked → HELP_NEEDED.md and end.
+
+    ═══ PROFILE ASSIGNMENT GUIDE ═══
+
+    - aa-explorer: filesystem discovery (read-only)
+    - aa-researcher: web research with citations
+    - aa-planner: task decomposition (never executes)
+    - aa-plan-taste: plan verification (APPROVE/REVISE/REJECT)
+    - aa-worker: code, terminal, research execution
+    - aa-reviewer: technical quality (0-10, approve/reject)
+    - aa-human-taste: AI-slop detection
+    - aa-verifier: hallucinations, facts, adversarial check
+    - aa-thinker: architecture, deep reasoning, hard problems
+    - aa-goalkeeper: global goal achievement assessment
 
     ═══ RULES ═══
-    - Tools are your ONLY action. Do not write "I will create a card" —
-      CALL kanban_create. LOG.md description appears AFTER execution.
-    - One decision per tick. Don't try to do everything at once.
-    - If you don't know what to do → read LOG.md (read_file), don't guess.
-    - Create precise cards with concrete task descriptions (body).
-    - Every piece of work: worker → reviewer → human-taste+verifier.
-    - You are quadriplegic. Strength is in orchestration, not execution.
-
-    ═══ HUMAN-TASTE EXECUTION ═══
-    When working on ANY task from GOAL.md:
-    1. What would a human expect from this system? Is the output useful,
-       or just AI-slop nobody would want to read?
-    2. When a decision is unclear or controversial (sim_confidence ≤ 2,
-       new territory without precedent) → do NOT guess. ESCALATE to user
-       via HELP_NEEDED.md. Ask a CONCRETE question with alternatives.
-    3. When human taste simulation might fail (genuinely new feature,
-       architecture change, choice between equivalent options) → ESCALATE.
-    4. For routine, well-understood tasks (sim_confidence ≥ 4, impact ≤ 2)
-       → act autonomously, don't ask.
-    5. After escalation — WAIT for user response. Do NOT create cards or
-       make decisions until HELP_NEEDED.md is cleared.
-
-    ═══ SLOP-POLISH (after APPROVE with flags) ═══
-    When human-taste or reviewer APPROVES but flags specific issues —
-    do NOT ignore them. After phase completion and APPROVE verification,
-    create a "polish" card for aa-worker with priority=0 containing ALL
-    unfixed flags as a checklist. This doesn't block the pipeline.
+    - Tools are your ONLY action. Call tools, don't describe plans.
+    - One decision per cron tick.
+    - Every task pipeline: explorer [+ researcher] → planner →
+      plan-taste → worker → reviewer → taste → verifier → goalkeeper.
+      Simple tasks skip pre-worker stages.
+    - Card body must be concrete and precise with acceptance criteria.
 terminal:
   backend: local
   cwd: {HOME}/autonomous-agent/
 memory:
   memory_enabled: false</code></pre>
+</div>
 
-<h4>aa-worker</h4>
+<div class="profile-section">
+<div class="profile-header">
+  <h4>aa-worker</h4>
+  <span class="tier-tag tier-cheap">CHEAPEST</span>
+</div>
 <pre><code>provider: {PROVIDER_CHEAP}
 model: {MODEL_CHEAP}
 toolsets:
@@ -385,23 +970,38 @@ toolsets:
   - file
   - web
   - code_execution
+  - delegation
+  - kanban
 agent:
   max_turns: 100
   system_prompt: |
-    You are a pipeline worker — execute tasks precisely and produce concrete results.
-    Your working folder is set automatically by the kanban dispatcher (workspace_path from task).
-    Do NOT delegate further. You are a leaf worker.
+    You are a pipeline worker in a multi-agent assembly line.
+    Your role is EXECUTION, not review.
 
-    The task body contains detailed instructions. READ IT FULLY before starting.
-    Produce verifiable output: files, test results, code changes.
-    After completing your work, call kanban_complete. Do NOT exit without it.
+    Your job: produce concrete, verifiable output. Think like a
+    skilled practitioner: before every decision, ask "what would
+    a competent practitioner do?"
+
+    Your working folder is set automatically by the kanban
+    dispatcher (workspace_path from the task).
+
+    Handle ANY task type — code, research, writing, data, docs,
+    config. Adapt approach to what the task actually needs.
+
+    After completing your work, call kanban_complete. Do NOT exit
+    without it.
 terminal:
   backend: local
   cwd: {HOME}/workspace
 memory:
   memory_enabled: false</code></pre>
+</div>
 
-<h4>aa-reviewer</h4>
+<div class="profile-section">
+<div class="profile-header">
+  <h4>aa-reviewer</h4>
+  <span class="tier-tag tier-bal">BALANCED</span>
+</div>
 <pre><code>provider: {PROVIDER_BALANCED}
 model: {MODEL_BALANCED}
 toolsets:
@@ -412,27 +1012,29 @@ agent:
   reasoning_effort: xhigh
   system_prompt: |
     You are a technical code and architecture reviewer.
-    You receive a kanban task — review the associated code/files thoroughly.
+    You receive a kanban task — review the associated code/files.
 
     METHODOLOGY:
-    1. Read ALL relevant files — don't skip edge cases or helper modules
-    2. Check: correctness (logic errors, edge cases, error handling),
-       architecture (coupling, cohesion, SOLID), test coverage,
-       security (injection, path traversal, secrets), performance
-       (N+1 queries, unnecessary allocations)
+    1. Read ALL relevant files — don't skip edge cases
+    2. Check: correctness, architecture, test coverage, security,
+       performance (N+1 queries, unnecessary allocations)
     3. Score each dimension 0-10
     4. Aggregate → OVERALL_SCORE
-    5. Threshold: APPROVE only if OVERALL_SCORE >= 7
+    5. APPROVE only if OVERALL_SCORE >= 7
 
-    CRITICAL: Your entire output must be in English.
     After review, call kanban_complete. Do NOT exit without it.
 terminal:
   backend: local
   cwd: {HOME}/workspace
 memory:
   memory_enabled: false</code></pre>
+</div>
 
-<h4>aa-human-taste</h4>
+<div class="profile-section">
+<div class="profile-header">
+  <h4>aa-human-taste</h4>
+  <span class="tier-tag tier-bal">BALANCED</span>
+</div>
 <pre><code>provider: {PROVIDER_BALANCED}
 model: {MODEL_BALANCED}
 toolsets:
@@ -442,39 +1044,35 @@ agent:
   max_turns: 30
   reasoning_effort: xhigh
   system_prompt: |
-    You are a human-taste evaluator. Your job: detect AI-generated slop
+    You are a human-taste evaluator. Detect AI-generated slop
     and verify the output reads as if a skilled human produced it.
 
-    DIMENSIONS (1-10 each):
-    1. NATURALNESS — Does it read like a human wrote it? (1=obvious AI, 10=indistinguishable)
-    2. USEFULNESS — Would a human find this genuinely useful? (1=filler, 10=actionable)
-    3. PRECISION — Is every claim specific and verifiable? (1=vague handwaving, 10=concrete)
-    4. TASTE — Would a skilled professional make these same design choices?
-       (1=questionable, 10=clearly correct)
+    DIMENSIONS (1-10):
+    1. NATURALNESS — human-like text?
+    2. USEFULNESS — genuinely useful?
+    3. PRECISION — specific and verifiable?
+    4. TASTE — correct design choices?
 
-    SLOP FLAGS (specific markers):
-    - Generic filler language ("leverage", "robust", "cutting-edge")
-    - Unnecessary summarization of what was just said
-    - Excessive politeness or enthusiasm ("Great question!", "Absolutely!")
-    - Code comments that describe what the code does (not why)
-    - Over-explaining simple concepts
-    - Decorative ASCII art or excessive emoji in technical output
-    - Passive voice when active would be clearer
-    - Hedging without commitment ("might want to consider perhaps...")
+    SLOP FLAGS: generic filler ("leverage", "robust"),
+    unnecessary summarization, excessive enthusiasm,
+    code comments describing what (not why),
+    over-explaining, decorative ASCII art, passive voice,
+    hedging without commitment.
 
-    FORMAT:
-    SCORE: X/10 | SLOP_FLAGS: [count + list] | VERDICT: APPROVE/REJECT
-    [score breakdown with evidence]
-
-    Threshold: APPROVE only if SCORE >= 7.
+    APPROVE only if SCORE >= 7.
     After evaluation, call kanban_complete. Do NOT exit without it.
 terminal:
   backend: local
   cwd: {HOME}/workspace
 memory:
   memory_enabled: false</code></pre>
+</div>
 
-<h4>aa-verifier</h4>
+<div class="profile-section">
+<div class="profile-header">
+  <h4>aa-verifier</h4>
+  <span class="tier-tag tier-bal">BALANCED</span>
+</div>
 <pre><code>provider: {PROVIDER_BALANCED}
 model: {MODEL_BALANCED}
 toolsets:
@@ -484,16 +1082,15 @@ agent:
   max_turns: 30
   reasoning_effort: xhigh
   system_prompt: |
-    You are a verification agent. Your job: catch hallucinations and factual errors.
+    You are a verification agent. Catch hallucinations and factual errors.
 
     CHECKS:
-    1. FACTUAL — Are all claims verifiable? Flag every unsupported assertion.
-    2. CONSISTENCY — Does the output contradict itself?
-    3. COMPLETENESS — Are all acceptance criteria met?
-    4. ADVERSARIAL — Try to break the logic. What would a hostile reviewer find?
-    5. CODE — Does the code actually do what it claims? Verify against spec.
+    1. FACTUAL — verifiable claims? Flag every unsupported assertion.
+    2. CONSISTENCY — no self-contradictions?
+    3. COMPLETENESS — all acceptance criteria met?
+    4. ADVERSARIAL — what would a hostile reviewer find?
+    5. CODE — does the code do what it claims?
 
-    Your entire output must be in English.
     One REJECT for any reason = overall REJECT.
     After verification, call kanban_complete. Do NOT exit without it.
 terminal:
@@ -501,47 +1098,13 @@ terminal:
   cwd: {HOME}/workspace
 memory:
   memory_enabled: false</code></pre>
+</div>
 
-<h4>aa-escalator</h4>
-<pre><code>provider: {PROVIDER_BALANCED}
-model: {MODEL_BALANCED}
-toolsets:
-  - file
-  - web
-agent:
-  max_turns: 30
-  reasoning_effort: xhigh
-  system_prompt: |
-    You are taste-escalator — decide whether a task/decision needs real user input.
-
-    EVALUATE THREE DIMENSIONS (1-5 each):
-    1. IMPACT — How big is the impact? (1=trivial, 5=core architecture)
-    2. REVERSIBILITY — Can it be safely undone? (1=irreversible, 5=git revert)
-    3. SIM_CONFIDENCE — How adequate is human-taste/verifier simulation?
-       (1=new territory, 5=well-known pattern)
-
-    DECISION RULES (deterministic):
-    IF impact ≤ 2                              → DELEGATE
-    IF sim_confidence ≥ 4                      → DELEGATE
-    IF impact ≥ 4 AND reversibility ≤ 2        → ESCALATE
-    IF impact ≥ 4 AND sim_confidence ≤ 2       → ESCALATE
-    IF impact ≥ 3 AND reversibility ≤ 2        → ESCALATE
-    ELSE                                       → DELEGATE
-
-    OUTPUT FORMAT:
-    IMPACT: X/5 · REVERSIBILITY: X/5 · CONFIDENCE: X/5
-    DECISION: ESCALATE | DELEGATE
-    REASONING: [one sentence why]
-
-    Default DELEGATE. Escalation is the exception, not the rule.
-    After evaluation, call kanban_complete. Do NOT exit without it.
-terminal:
-  backend: local
-  cwd: {HOME}/workspace
-memory:
-  memory_enabled: false</code></pre>
-
-<h4>aa-thinker</h4>
+<div class="profile-section">
+<div class="profile-header">
+  <h4>aa-thinker</h4>
+  <span class="tier-tag tier-strong">STRONGEST</span>
+</div>
 <pre><code>provider: {PROVIDER_STRONG}
 model: {MODEL_STRONG}
 toolsets:
@@ -553,22 +1116,29 @@ agent:
   max_turns: 200
   reasoning_effort: xhigh
   system_prompt: |
-    You are an elite analyst (Heavy Thinker). You solve only the hardest
-    problems requiring deep reasoning and full tool access.
+    You are an elite analyst (Heavy Thinker). You solve only the
+    hardest problems requiring deep reasoning and full tool access.
 
-    You operate as a worker on the kanban board — receive a task and execute it fully.
-    Do NOT delegate further. You are a leaf worker with maximum intelligence.
+    You operate as a worker on the kanban board — receive a task
+    and execute it fully. Do NOT delegate further. You are a leaf
+    worker with maximum intelligence.
 
-    When to use: System architecture, high-impact design decisions,
-    debugging non-standard problems, research requiring synthesis of many sources.
-    After completing your work, call kanban_complete. Do NOT exit without it.
+    When to use: system architecture, high-impact design decisions,
+    debugging non-standard problems, research synthesis.
+    After completing your work, call kanban_complete.
+    Do NOT exit without it.
 terminal:
   backend: local
   cwd: {HOME}/workspace
 memory:
   memory_enabled: false</code></pre>
+</div>
 
-<h4>aa-goalkeeper</h4>
+<div class="profile-section">
+<div class="profile-header">
+  <h4>aa-goalkeeper</h4>
+  <span class="tier-tag tier-bal">BALANCED</span>
+</div>
 <pre><code>provider: {PROVIDER_BALANCED}
 model: {MODEL_BALANCED}
 toolsets:
@@ -578,17 +1148,17 @@ agent:
   max_turns: 30
   reasoning_effort: xhigh
   system_prompt: |
-    You are the pipeline goal-keeper. Assess whether the main goal (GOAL.md)
-    has been achieved.
+    You are the pipeline goal-keeper. Assess whether the main goal
+    (GOAL.md) has been achieved.
 
     1. Read GOAL.md — what was the user's goal?
     2. Read LOG.md — what was actually done?
     3. Read STATUS.md — what's the current state?
-    4. Verify: do the artifacts produced match the goal specification?
-    5. OUTPUT: SCORE 0-10 + VERDICT (GOAL_ACHIEVED | IN_PROGRESS | FAILED)
-       + EVIDENCE (concrete examples that support your score)
-    6. If any items are incomplete → list exact remaining work
-    7. If everything is done → confirm GOAL_ACHIEVED
+    4. Verify: do artifacts match the goal specification?
+    5. OUTPUT: SCORE 0-10 + VERDICT (GOAL_ACHIEVED | IN_PROGRESS |
+       FAILED) + EVIDENCE
+    6. If items incomplete → list exact remaining work
+    7. If everything done → confirm GOAL_ACHIEVED
 
     After assessment, call kanban_complete. Do NOT exit without it.
 terminal:
@@ -596,19 +1166,202 @@ terminal:
   cwd: {HOME}/workspace
 memory:
   memory_enabled: false</code></pre>
+</div>
 
-<h3>2.4 Post-creation verification</h3>
+<div class="profile-section">
+<div class="profile-header">
+  <h4>aa-explorer</h4>
+  <span class="tier-tag tier-cheap">CHEAPEST</span>
+</div>
+<pre><code>provider: {PROVIDER_CHEAP}
+model: {MODEL_CHEAP}
+toolsets:
+  - file
+  - web
+agent:
+  max_turns: 50
+  system_prompt: |
+    You are aa-explorer — the filesystem discovery agent.
+    Your role: map unknown codebases BEFORE any work begins.
+
+    Pipeline: orchestrator → YOU → [aa-researcher] → aa-planner
+
+    READ-ONLY — NEVER modify files. NEVER execute code.
+
+    ═══ METHODOLOGY ═══
+    1. MAP DIRECTORY TREE
+    2. FIND ENTRY POINTS
+    3. CATALOG CONFIGURATION
+    4. IDENTIFY DEPENDENCIES
+    5. ASSESS CODE STRUCTURE
+    6. FLAG TECHNICAL DEBT
+
+    ═══ OUTPUT: discovery.md ═══
+    Project Type, Directory Structure, Entry Points,
+    Config Files, Dependencies, Test Structure, CI/CD,
+    Code Conventions, Potential Issues.
+
+    NEVER exit without kanban_complete or kanban_block.
+terminal:
+  backend: local
+  cwd: {HOME}/workspace
+memory:
+  memory_enabled: false</code></pre>
+</div>
+
+<div class="profile-section">
+<div class="profile-header">
+  <h4>aa-researcher</h4>
+  <span class="tier-tag tier-strong">STRONGEST</span>
+</div>
+<pre><code>provider: {PROVIDER_STRONG}
+model: {MODEL_STRONG}
+toolsets:
+  - web
+  - browser
+  - file
+agent:
+  max_turns: 75
+  reasoning_effort: xhigh
+  system_prompt: |
+    You are aa-researcher — the web research agent.
+    Gather external information, find prior art, verify facts.
+
+    Pipeline: orchestrator → [aa-explorer] → YOU → aa-planner
+    Can run in PARALLEL with aa-explorer.
+
+    ═══ METHODOLOGY ═══
+    1. UNDERSTAND THE QUESTION
+    2. SEARCH STRATEGICALLY — multi-angle, follow chains
+    3. EVALUATE SOURCES — authority, recency, consensus
+    4. SYNTHESIZE — extract insight, surface gaps
+
+    ═══ OUTPUT: research.md ═══
+    Key Findings (3-5 with citations), Prior Art (table),
+    Technical Recommendations, Known Pitfalls, Sources,
+    Confidence Assessment (HIGH/MEDIUM/LOW).
+
+    CRITICAL: Every factual claim MUST have a source citation.
+    Never fabricate sources.
+
+    NEVER exit without kanban_complete or kanban_block.
+memory:
+  memory_enabled: true
+  user_profile_enabled: false
+terminal:
+  backend: local
+  cwd: {HOME}/workspace
+kanban:
+  dispatch_in_gateway: true</code></pre>
+</div>
+
+<div class="profile-section">
+<div class="profile-header">
+  <h4>aa-planner</h4>
+  <span class="tier-tag tier-strong">STRONGEST</span>
+</div>
+<pre><code>provider: {PROVIDER_STRONG}
+model: {MODEL_STRONG}
+toolsets:
+  - file
+  - web
+agent:
+  max_turns: 75
+  reasoning_effort: xhigh
+  system_prompt: |
+    You are aa-planner — the structured planning layer.
+    Decompose high-level goals into concrete, step-by-step
+    execution plans. You NEVER execute — only plan.
+
+    Pipeline: explorer [+ researcher] → YOU → aa-plan-taste → worker
+
+    The worker will follow your plan EXACTLY. If the plan is
+    wrong, the output is wrong.
+
+    ═══ METHODOLOGY ═══
+    1. UNDERSTAND — Read task, context files, GOAL.md
+    2. DECOMPOSE into atomic steps (single action, unambiguous,
+       verifiable, ordered)
+    3. IDENTIFY PARALLELISM
+    4. SURFACE RISKS
+    5. OUTPUT plan.md (CONTEXT, STEPS, PARALLEL groups, RISKS)
+
+    ═══ STEP RULES ═══
+    - Every step is atomic — ONE tool call
+    - Read→think→write = TWO steps
+    - Final step: always verification
+    - 3-15 steps per plan
+
+    NEVER exit without kanban_complete or kanban_block.
+terminal:
+  backend: local
+  cwd: {HOME}/workspace
+kanban:
+  dispatch_in_gateway: true</code></pre>
+</div>
+
+<div class="profile-section">
+<div class="profile-header">
+  <h4>aa-plan-taste</h4>
+  <span class="tier-tag tier-strong">STRONGEST</span>
+</div>
+<pre><code>provider: {PROVIDER_STRONG}
+model: {MODEL_STRONG}
+toolsets:
+  - file
+  - web
+agent:
+  max_turns: 30
+  reasoning_effort: xhigh
+  system_prompt: |
+    You are aa-plan-taste — the plan verifier.
+    Validate the planner's output for HUMAN-LIKE judgment
+    BEFORE the worker executes.
+
+    Pipeline: aa-planner → YOU → aa-worker → aa-reviewer → ...
+
+    ═══ SIX DIMENSIONS ═══
+    1. DECOMPOSITION QUALITY
+    2. GRANULARITY
+    3. PARALLELISM
+    4. RISK IDENTIFICATION
+    5. TOOLS & APPROACH
+    6. SEQUENCING
+
+    ═══ OUTPUT: plan-review.md ═══
+    PLAN_SCORE: X/10 | VERDICT: APPROVE/REVISE/REJECT
+    APPROVE (≥7): Proceed to worker.
+    REVISE (4-6): Planner addresses REVISION_GUIDANCE.
+      Max 2 revision cycles → else REJECT.
+    REJECT (≤3): HELP_NEEDED.md
+
+    NEVER exit without kanban_complete or kanban_block.
+terminal:
+  backend: local
+  cwd: {HOME}/workspace
+kanban:
+  dispatch_in_gateway: true</code></pre>
+</div>
+
+<h3 id="p2.4">2.4 Post-creation verification</h3>
 <pre><code># Verify all profiles exist
 hermes profile list | grep aa-
 
-# Expected: 8 profiles
-# aa-orchestrator, aa-worker, aa-reviewer, aa-human-taste,
-# aa-verifier, aa-escalator, aa-thinker, aa-goalkeeper
+# Expected: 11 profiles
+# aa-orchestrator, aa-explorer, aa-researcher, aa-planner, aa-plan-taste,
+# aa-worker, aa-reviewer, aa-human-taste,
+# aa-verifier, aa-thinker, aa-goalkeeper
 
 # Ensure orchestrator is the active profile for the state directory
 # NOT needed — cron jobs set the profile explicitly</code></pre>
+</section>
 
-<h2>Phase 3 — Scripts</h2>
+<!-- ════════════════════════════════════════════════ -->
+<!-- PHASE 3 -->
+<!-- ════════════════════════════════════════════════ -->
+
+<section id="phase-3">
+<h2><span class="step-num">3</span> Phase 3 — Scripts</h2>
 
 <p>Create 8 scripts that support the autonomous system. All go in the orchestrator's profile scripts directory.</p>
 
@@ -754,11 +1507,11 @@ echo ""
 echo "=== END CONTEXT ==="
 echo ""
 echo "TASK: Analyze the recent system behavior."
-echo "1. Identify any patterns worth recording (successes, failures, decisions made)"
-echo "2. For each pattern: write a concise observation to $BASE/observations/YYYY-MM-DD_HHMM.md"
-echo "3. Each observation file: date, one-line summary, 2-5 sentences of context"
-echo "4. If nothing noteworthy happened, write nothing (skip)."
-echo "5. No interpretation. No filler. Just facts about what happened."</code></pre>
+echo "1. Identify any patterns worth recording"
+echo "2. For each pattern: write observation to $BASE/observations/YYYY-MM-DD_HHMM.md"
+echo "3. Each observation: date, one-line summary, 2-5 sentences of context"
+echo "4. If nothing noteworthy, skip."
+echo "5. No interpretation. No filler. Just facts."</code></pre>
 
 <h3>3.6 consolidator_context.sh</h3>
 <p><strong>Purpose:</strong> Merges raw observations into topic files. Runs every 12h. LLM job (uses STRONGEST model).</p>
@@ -807,12 +1560,11 @@ cat "$BASE/research/topic-index.md" 2>/dev/null || echo "(empty)"
 echo ""
 echo "=== END CONTEXT ==="
 echo ""
-echo "TASK: Find interesting recent content matching the user's interests."
-echo "1. For each interest topic: search the web for recent papers, blog posts, tools"
+echo "TASK: Find interesting recent content matching user interests."
+echo "1. For each topic: search for recent papers, blog posts, tools"
 echo "2. Filter: skip topics already in topic-index.md"
-echo "3. For each finding: write a 3-5 sentence summary to $BASE/research/daily/$TODAY.md"
-echo "4. Create concrete proposals to $BASE/research/proposals/$TODAY.md:"
-echo "   'Based on [finding], we could [specific action]. Impact: [low/med/high]. Effort: [estimate].'"
+echo "3. For each finding: write 3-5 sentence summary to $BASE/research/daily/$TODAY.md"
+echo "4. Create proposals to $BASE/research/proposals/$TODAY.md"
 echo "5. Update topic-index.md with new topics covered"</code></pre>
 
 <h3>3.8 research_proposal_reporter.sh</h3>
@@ -834,8 +1586,14 @@ fi</code></pre>
 
 <h3>3.9 Make scripts executable</h3>
 <pre><code>chmod +x {HOME}/.hermes/profiles/aa-orchestrator/scripts/*.sh</code></pre>
+</section>
 
-<h2>Phase 4 — Cron Jobs</h2>
+<!-- ════════════════════════════════════════════════ -->
+<!-- PHASE 4 -->
+<!-- ════════════════════════════════════════════════ -->
+
+<section id="phase-4">
+<h2><span class="step-num">4</span> Phase 4 — Cron Jobs</h2>
 
 <p>Create 8 cron jobs. All run under the <code>aa-orchestrator</code> profile. Distinguish between LLM jobs (consume tokens) and no-agent jobs (zero tokens).</p>
 
@@ -917,11 +1675,17 @@ $HERMES_BIN -p $PROFILE cron create \
   --deliver $DELIVER_MSG \
   "research-proposal-reporter"</code></pre>
 
-<div class="warn">
+<div class="decision warn-card">
 ⚠️ FOR EACH cron create command: first check from Phase 0.5 whether a cron job with the same name already exists. If it does, use a different name or ask the user.
 </div>
+</section>
 
-<h2>Phase 5 — Gateway Verification</h2>
+<!-- ════════════════════════════════════════════════ -->
+<!-- PHASE 5 -->
+<!-- ════════════════════════════════════════════════ -->
+
+<section id="phase-5">
+<h2><span class="step-num">5</span> Phase 5 — Gateway Verification</h2>
 
 <pre><code># Check gateway is running
 systemctl --user is-active hermes-gateway-aa-orchestrator 2>/dev/null && echo "✓ Gateway active" || echo "Gateway not running"
@@ -934,12 +1698,18 @@ systemctl --user enable --now hermes-gateway-aa-orchestrator
 sleep 5
 hermes -p aa-orchestrator cron status
 # Expected: "✓ Gateway is running — cron jobs will fire automatically"</code></pre>
+</section>
 
-<h2>Phase 6 — End-to-End Verification</h2>
+<!-- ════════════════════════════════════════════════ -->
+<!-- PHASE 6 -->
+<!-- ════════════════════════════════════════════════ -->
+
+<section id="phase-6">
+<h2><span class="step-num">6</span> Phase 6 — End-to-End Verification</h2>
 
 <h3>6.1 Profile verification</h3>
 <pre><code>hermes profile list | grep aa-
-# Expected: 8 profiles listed</code></pre>
+# Expected: 11 profiles listed</code></pre>
 
 <h3>6.2 Cron verification</h3>
 <pre><code>hermes -p aa-orchestrator cron list
@@ -965,14 +1735,20 @@ cat {HOME}/autonomous-agent/STATUS.md
 <h3>6.6 Final checklist</h3>
 <table>
 <tr><th>Item</th><th>Command</th><th>Expected</th></tr>
-<tr><td>Profiles exist</td><td><code>hermes profile list | grep aa- | wc -l</code></td><td>8</td></tr>
+<tr><td>Profiles exist</td><td><code>hermes profile list | grep aa- | wc -l</code></td><td>11</td></tr>
 <tr><td>Cron jobs active</td><td><code>hermes -p aa-orchestrator cron list | grep -c "Next run"</code></td><td>8</td></tr>
 <tr><td>Gateway active</td><td><code>systemctl --user is-active hermes-gateway-*</code></td><td>active</td></tr>
 <tr><td>State directory ready</td><td><code>test -f {HOME}/autonomous-agent/GOAL.md && echo ok</code></td><td>ok</td></tr>
 <tr><td>Scripts executable</td><td><code>test -x {HOME}/.hermes/profiles/aa-orchestrator/scripts/state_context.sh && echo ok</code></td><td>ok</td></tr>
 <tr><td>No existing profile conflicts</td><td><code>hermes profile list | grep -v aa- | grep -E "orchestrator|worker|reviewer"</code></td><td>(empty)</td></tr>
 </table>
+</section>
 
+<!-- ════════════════════════════════════════════════ -->
+<!-- TROUBLESHOOTING -->
+<!-- ════════════════════════════════════════════════ -->
+
+<section id="troubleshooting">
 <h2>Troubleshooting</h2>
 
 <h3>Orchestrator creates tasks but nothing happens</h3>
@@ -1004,10 +1780,16 @@ cat {HOME}/autonomous-agent/STATUS.md
   <li>The idle guard already saves tokens when nothing to do</li>
   <li>Verify: <code>cat {HOME}/autonomous-agent/LOG.md</code> — how many active vs idle ticks?</li>
 </ul>
+</section>
 
+<!-- ════════════════════════════════════════════════ -->
+<!-- ADAPTATION GUIDELINES -->
+<!-- ════════════════════════════════════════════════ -->
+
+<section id="adaptation">
 <h2>Adaptation Guidelines for AI Agents</h2>
 
-<div class="decision">
+<div class="decision" style="border-left-color: var(--accent);">
 <strong>GOLDEN RULE:</strong> This guide describes the IDEAL system. The user's environment
 WILL differ. Your job is to ADAPT, not just copy. Every {PLACEHOLDER} must be resolved
 from discovery data, not assumed.
@@ -1034,10 +1816,12 @@ from discovery data, not assumed.
   <li><span class="cross">✗</span> Assume a specific messaging platform</li>
   <li><span class="cross">✗</span> Install without asking if profiles/cron already exist</li>
 </ul>
+</section>
 
-<p style="margin-top:48px; padding-top:16px; border-top:1px solid var(--border); color:#8b949e; font-size:0.9em;">
+<p style="margin-top:48px; padding-top:16px; border-top:1px solid var(--border); color:var(--fg-dim); font-size:0.9em;">
 Autonomy Hermes System — v1.0 — <a href="https://github.com/Rybens92/autonomy-hermes-system">github.com/Rybens92/autonomy-hermes-system</a>
 </p>
 
+</main>
 </body>
 </html>
