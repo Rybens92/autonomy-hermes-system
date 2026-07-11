@@ -26,17 +26,17 @@ echo "$CURRENT_SIG" > "$HASH_FILE"
 ### Output (lines 26-31)
 Prints a filtered status update with a hardcoded project header:
 ```
-📊 TasteBench Status Update:
+|📊 {PROJECT_NAME} Status Update:
 
 <grep-filtered lines: Phase, Status, DONE, BLOCKED, MILESTONE, REVIEW_FAILED — last 5>
 
 Ostatni tick: <value from STATUS.md>
 ```
 
-The hardcoded "TasteBench" project name (line 26) must be changed by the user to match their actual project name.
+The project name is now set via the `{PROJECT_NAME}` placeholder (line 29). Replace `{PROJECT_NAME}` with your actual project name, or set `PROJECT_NAME` as an environment variable in the cron job definition.
 
 ## Customization Points
-- **Project name**: Change `"TasteBench"` on line 26 to your project name
+- **Project name**: Replace `{PROJECT_NAME}` placeholder on line 29 with your project name, or set `PROJECT_NAME` as an environment variable
 - **Hash file**: `.last_milestone_hash` (line 7) — stored in the scripts directory. Change the path if you want it elsewhere
 - **Hash algorithm**: Uses `md5sum`. Replace with `sha256sum` if your system doesn't have md5sum
 - **Filter pattern**: Adjust the grep patterns on line 10 to match your STATUS.md format

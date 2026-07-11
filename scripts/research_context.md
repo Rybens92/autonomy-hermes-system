@@ -23,6 +23,6 @@ Instructs the agent to:
 6. Create proposals to `research/proposals/YYYY-MM-DD.md` with project ideas and GOAL.md additions
 
 ## Modification Notes
-- The agent needs `web` toolset to search — ensure the orchestrator profile's toolsets include it (it does, through the cron job inheriting the profile config)
+- The agent needs `web` toolset to search — ensure the research agent profile's toolsets include it (it does, through the cron job inheriting the profile config)
 - If the search produces too many results, add a limit: "max 3 findings per interest topic"
 - The proposals format can be extended with custom fields (dependencies, prerequisites, etc.)

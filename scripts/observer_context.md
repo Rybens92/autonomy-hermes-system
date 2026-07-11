@@ -1,7 +1,9 @@
-# observer_context.sh
+# observer_context.sh ⚠️ DISABLED — enable only if memory system is wired
 
 ## Purpose
 Captures noteworthy system events into observation files for later consolidation. LLM job — the agent analyzes recent behavior and writes structured observations.
+
+**Disabled 2026-07-10** — the observations it produces have no downstream consumer (memory-consolidator is also disabled). Enable both together or neither.
 
 ## Key Logic
 

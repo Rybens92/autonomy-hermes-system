@@ -22,7 +22,7 @@ If the blocker content has changed (user responded), evaluate it.
 OTHERWISE: respond with 'IDLE — waiting for user.' and no tool calls.
 ```
 
-This saves ~95% tokens compared to full context injection when the system is blocked.
+This saves ~95% of bytes (and roughly equivalent token reduction) compared to full context injection when the system is blocked — the HELP_NEEDED guard outputs ~600 bytes vs the full ~7KB compressed context.
 
 ### Normal Context (lines 26-46)
 When not blocked, injects a **compressed** state view (optimized from full file dumps to reduce token usage by ~86%):
@@ -34,7 +34,7 @@ When not blocked, injects a **compressed** state view (optimized from full file 
 - Kanban board — only **non-done** tasks (filtered via `grep -v "^✓ "` | head -10). Previously included all ~42 done tasks.
 - HELP_NEEDED.md — shows `(none)` when absent
 
-**Savings:** 554 lines / 53100 bytes → 72 lines / 7275 bytes (86% reduction, ~21K tokens saved per hourly tick).
+**Savings:** 554 lines / 53100 bytes → 72 lines / 7275 bytes (86% reduction, ~21K tokens saved per hourly tick at pricing for the creator's STRONGEST model — your actual savings depend on your provider's per-token pricing).
 
 No cron status is output — the script does not query or report cron job health.
 

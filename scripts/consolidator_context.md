@@ -1,7 +1,9 @@
-# consolidator_context.sh
+# consolidator_context.sh ⚠️ DISABLED — enable only with observer
 
 ## Purpose
 Merges raw observation files into topic files. Runs every 12h. LLM job — the agent groups observations by theme and consolidates them.
+
+**Disabled 2026-07-10.** Requires observer_context.sh to be active first (it consumes observation files). Enable both together or neither.
 
 ## Key Logic
 
