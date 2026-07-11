@@ -1,0 +1,10 @@
+# Decision Log for {SYSTEM_NAME}
+
+Format: [TIMESTAMP] [DECISION] description
+
+[YYYY-MM-DDTHH:MMZ] [DECISION] {FIRST_DECISION}
+
+## Conventions
+- LOG.md is APPEND-ONLY — never overwrite
+- Use `cat >> LOG.md << 'EOF'` for appending
+- One entry per orchestrator tick

@@ -1,1 +1,20 @@
-/path/to/your/project
+# {PROJECT_NAME}
+
+- **Repository:** {REPO_URL}
+- **Primary workspace:** {WORKSPACE_PATH}
+- **Language:** {PRIMARY_LANGUAGE}
+- **Build system:** {BUILD_SYSTEM}
+- **Test runner:** {TEST_COMMAND}
+
+## Quick commands
+- Install: `{INSTALL_COMMAND}`
+- Test: `{TEST_COMMAND}`
+- Lint: `{LINT_COMMAND}`
+
+## Key modules
+- {MODULE_PATH_1} — {PURPOSE}
+- {MODULE_PATH_2} — {PURPOSE}
+
+## Conventions
+- {CONVENTION_1}
+- {CONVENTION_2}

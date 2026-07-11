@@ -1,0 +1,23 @@
+# HELP NEEDED — {SYSTEM_NAME}
+
+**Created:** {TIMESTAMP}
+**Blocker:** {BLOCKER_TYPE} (provider/auth/capability/needs_input)
+**Urgency:** {URGENCY_LEVEL}
+
+## What I need
+
+{DESCRIPTION_OF_WHAT_YOU_NEED_FROM_THE_USER}
+
+## Context
+
+{RELEVANT_CONTEXT — kanban card IDs, error messages, what was tried}
+
+## Options (if applicable)
+
+1. {OPTION_1}
+2. {OPTION_2}
+
+---
+
+_This file triggers the ping-human-watchdog cron job which alerts the user._
+_Delete this file after resolving the blocker._

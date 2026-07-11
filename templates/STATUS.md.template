@@ -1,0 +1,34 @@
+# Status of {SYSTEM_NAME}
+
+Start: {START_DATE}
+Last tick: {LAST_TICK} — {CURRENT_ACTIVITY}
+
+## Status: {STATE} — {ACTIVE_GOAL_SUMMARY}
+
+## Goal Tracker
+| # | Goal | Status | Kanban Cards |
+|---|------|--------|--------------|
+| 1 | {GOAL_1_TITLE} | {STATUS_1} | {CARD_IDS} |
+| 2 | {GOAL_2_TITLE} | {STATUS_2} | {CARD_IDS} |
+| 3 | {GOAL_3_TITLE} | {STATUS_3} | {CARD_IDS} |
+
+## Kanban Snapshot
+- Active (running/ready): {N}
+- Blocked: {N}
+- Done: {N}
+
+## Audit Cursor
+- Cycle: {N} (prior cycles complete, depth: {DEPTH})
+- Total done tasks: {N}
+- Last audited task ID: {ID}
+- Audited this cycle: {N} / {N}
+- Audit depth: {DEPTH_DESCRIPTOR} — {QUESTION}
+- Current verification card: {ID} ({ASSIGNEE}, {STATUS})
+
+## Open Actions
+- [ ] {ACTION_1}
+- [ ] {ACTION_2}
+
+## Notes
+- {NOTE_1}
+- {NOTE_2}
