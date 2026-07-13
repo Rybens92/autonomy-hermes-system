@@ -155,7 +155,7 @@ cat ~/autonomous-agent/LOG.md
 
 With hourly ticks and cheap models for workers/review/taste (strongest reasoning reserved for the orchestrator):
 
-- **~30K strong-model tokens/day** for orchestration (at ~1 tick/hour + research)
+- **~19K strong-model tokens/day** for orchestration (6 active + 2 disabled, at ~1 tick/hour + research)
 - **~50K cheap-model tokens/day** for worker execution (varies with task volume)
 - All supporting jobs (watchdog, cleanup, milestone): **0 LLM tokens** (no-agent scripts)
 

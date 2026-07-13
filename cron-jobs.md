@@ -15,14 +15,14 @@
 The schedule is designed around an **hourly orchestration tick** — the orchestrator evaluates the system state once per hour. Supporting jobs are offset to run between orchestration ticks.
 
 ```
-XX:00  orchestrator-heartbeat         (LLM, ~700 tokens) — main decision loop
-XX:05  memory-observer                (LLM, ~500 tokens) — DISABLED
-XX:10  milestone-reporter             (no-agent, 0 tokens) — report changes
-every 10 min: ping-human-watchdog     (no-agent, 0 tokens) — monitor for help requests
-00:00, 12:00: memory-consolidator     (LLM, ~400 tokens) — DISABLED
-00:00, 06:00, 12:00, 18:00: cleanup   (no-agent, 0 tokens) — maintenance
-18:00: daily-research                 (LLM, ~2000 tokens) — find interesting content
-18:30: research-proposal-reporter     (no-agent, 0 tokens) — deliver proposals
+XX:00  orchestrator-heartbeat         (LLM, ~700 tokens) — [ACTIVE] main decision loop
+XX:05  memory-observer                (LLM, ~500 tokens) — [DISABLED]
+XX:10  milestone-reporter             (no-agent, 0 tokens) — [ACTIVE] report changes
+every 10 min: ping-human-watchdog     (no-agent, 0 tokens) — [ACTIVE] monitor for help requests
+00:00, 12:00: memory-consolidator     (LLM, ~400 tokens) — [DISABLED]
+00:00, 06:00, 12:00, 18:00: cleanup   (no-agent, 0 tokens) — [ACTIVE] maintenance
+18:00: daily-research                 (LLM, ~2000 tokens) — [ACTIVE] find interesting content
+18:30: research-proposal-reporter     (no-agent, 0 tokens) — [ACTIVE] deliver proposals
 ```
 
 ## Job Details
@@ -50,7 +50,7 @@ every 10 min: ping-human-watchdog     (no-agent, 0 tokens) — monitor for help 
 | ⚠️ DISABLED memory-consolidator | `0 */12 * * *` | LLM | ~400 | local | `consolidator_context.sh` | Merges raw observations into topic files |
 | ping-human-watchdog | `*/10 * * * *` | no-agent | **0** | messaging | `check_help.sh` | Monitors HELP_NEEDED.md — alerts user |
 | milestone-reporter | `10 * * * *` | no-agent | **0** | messaging | `milestone_reporter.sh` | Reports STATUS.md changes (phase transitions) |
-| cleanup-agent | `0 */6 * * *` | no-agent | **0** | local | `cleanup.sh` | Archives done tasks, removes stale files |
+| cleanup-agent | `0 */6 * * *` | no-agent | **0** | messaging | `cleanup.sh` | Archives done tasks, removes stale files |
 | daily-research | `0 18 * * *` | LLM | ~2000 | local | `research_context.sh` | Searches web for content matching user interests, writes summaries + proposals |
 | research-proposal-reporter | `30 18 * * *` | no-agent | **0** | messaging | `research_proposal_reporter.sh` | Delivers today's research proposals to user |
 
