@@ -498,11 +498,11 @@
   </div>
   <div class="hero-meta-item">
     <span class="label">Cron Jobs</span>
-    <span class="value"><strong>8</strong> scheduled</span>
+    <span class="value"><strong>6</strong> active (+2 disabled)</span>
   </div>
   <div class="hero-meta-item">
     <span class="label">Scripts</span>
-    <span class="value"><strong>8</strong> support</span>
+    <span class="value"><strong>6</strong> active (+2 disabled)</span>
   </div>
   <div class="hero-meta-item">
     <span class="label">For</span>
@@ -511,7 +511,7 @@
 </div>
 
 <p><strong>Target audience:</strong> AI agents that need to replicate this autonomous agent system on a user's machine.<br>
-<strong>Goal:</strong> Install 11 specialized profiles, 8 cron jobs, 8 scripts, and a state directory — without breaking anything the user already has.</p>
+<strong>Goal:</strong> Install 11 specialized profiles, 6 active cron jobs (+2 disabled), 8 scripts, and a state directory — without breaking anything the user already has.</p>
 
 <div class="decision">
 This guide is a <strong>decision tree</strong>, not a recipe. At every step, you MUST discover what the user already has and adapt. Never assume. Never overwrite.
@@ -575,7 +575,7 @@ IF any profile name starts with "aa-" (e.g., aa-orchestrator, aa-worker):
 
 <div class="decision">
 <strong>Provider mapping logic — discover, don't assume:</strong>
-<p>The project creator uses <strong>DeepSeek v4-pro</strong> for orchestration/review/taste and <strong>DeepSeek v4-flash</strong> for worker/explorer execution. But your user may have different providers configured — the system auto-maps.</p>
+<p>The project creator uses the <strong>STRONGEST</strong> tier model for orchestration/review/taste and the <strong>CHEAPEST</strong> tier model for worker/explorer execution. But your user may have different providers configured — the system auto-maps.</p>
 
 <p><strong>How to choose:</strong></p>
 <ol>
@@ -1604,15 +1604,15 @@ ELSE: <code>--deliver local</code> for all jobs.
 </div>
 
 <table>
-<tr><th>Job</th><th>Schedule</th><th>Script</th><th>Mode</th><th>Tokens</th><th>Deliver</th></tr>
-<tr><td>orchestrator-heartbeat</td><td><code>0 * * * *</code></td><td>state_context.sh</td><td>LLM</td><td>~700/tick</td><td>local</td></tr>
-<tr><td>memory-observer</td><td><code>5 * * * *</code></td><td>observer_context.sh</td><td>LLM</td><td>~500/tick</td><td>local</td></tr>
-<tr><td>memory-consolidator</td><td><code>0 */12 * * *</code></td><td>consolidator_context.sh</td><td>LLM</td><td>~400/tick</td><td>local</td></tr>
-<tr><td>ping-human-watchdog</td><td><code>*/10 * * * *</code></td><td>check_help.sh</td><td>no-agent</td><td>0</td><td>messaging</td></tr>
-<tr><td>milestone-reporter</td><td><code>10 * * * *</code></td><td>milestone_reporter.sh</td><td>no-agent</td><td>0</td><td>messaging</td></tr>
-<tr><td>cleanup-agent</td><td><code>0 */6 * * *</code></td><td>cleanup.sh</td><td>no-agent</td><td>0</td><td>messaging</td></tr>
-<tr><td>daily-research</td><td><code>0 18 * * *</code></td><td>research_context.sh</td><td>LLM</td><td>~2000/tick</td><td>local</td></tr>
-<tr><td>research-proposal-reporter</td><td><code>30 18 * * *</code></td><td>research_proposal_reporter.sh</td><td>no-agent</td><td>0</td><td>messaging</td></tr>
+<tr><th>Job</th><th>Schedule</th><th>Script</th><th>Mode</th><th>Tokens</th><th>Deliver</th><th>Status</th></tr>
+<tr><td>orchestrator-heartbeat</td><td><code>0 * * * *</code></td><td>state_context.sh</td><td>LLM</td><td>~700/tick</td><td>local</td><td>active</td></tr>
+<tr><td>memory-observer</td><td><code>5 * * * *</code></td><td>observer_context.sh</td><td>LLM</td><td>~500/tick</td><td>local</td><td><strong>(disabled)</strong></td></tr>
+<tr><td>memory-consolidator</td><td><code>0 */12 * * *</code></td><td>consolidator_context.sh</td><td>LLM</td><td>~400/tick</td><td>local</td><td><strong>(disabled)</strong></td></tr>
+<tr><td>ping-human-watchdog</td><td><code>*/10 * * * *</code></td><td>check_help.sh</td><td>no-agent</td><td>0</td><td>messaging</td><td>active</td></tr>
+<tr><td>milestone-reporter</td><td><code>10 * * * *</code></td><td>milestone_reporter.sh</td><td>no-agent</td><td>0</td><td>messaging</td><td>active</td></tr>
+<tr><td>cleanup-agent</td><td><code>0 */6 * * *</code></td><td>cleanup.sh</td><td>no-agent</td><td>0</td><td>messaging</td><td>active</td></tr>
+<tr><td>daily-research</td><td><code>0 18 * * *</code></td><td>research_context.sh</td><td>LLM</td><td>~2000/tick</td><td>local</td><td>active</td></tr>
+<tr><td>research-proposal-reporter</td><td><code>30 18 * * *</code></td><td>research_proposal_reporter.sh</td><td>no-agent</td><td>0</td><td>messaging</td><td>active</td></tr>
 </table>
 
 <pre><code>HERMES_BIN="{HERMES_INSTALL}/venv/bin/hermes"
@@ -1628,12 +1628,14 @@ $HERMES_BIN -p $PROFILE cron create \
   --workdir "{HOME}/autonomous-agent" \
   "orchestrator-heartbeat"
 
+# DISABLED — memory observation (optional, re-enable if memory management needed)
 $HERMES_BIN -p $PROFILE cron create \
   --schedule "5 * * * *" \
   --script observer_context.sh \
   --deliver $DELIVER_LOCAL \
   "memory-observer"
 
+# DISABLED — memory consolidation (optional, re-enable if memory management needed)
 $HERMES_BIN -p $PROFILE cron create \
   --schedule "0 */12 * * *" \
   --script consolidator_context.sh \
@@ -1713,7 +1715,7 @@ hermes -p aa-orchestrator cron status
 
 <h3>6.2 Cron verification</h3>
 <pre><code>hermes -p aa-orchestrator cron list
-# Expected: 8 jobs, all active, with "Next run" timestamps</code></pre>
+# Expected: 6 active jobs (memory-observer and memory-consolidator disabled), with "Next run" timestamps</code></pre>
 
 <h3>6.3 Kanban verification</h3>
 <pre><code>hermes -p aa-orchestrator kanban list
@@ -1736,7 +1738,7 @@ cat {HOME}/autonomous-agent/STATUS.md
 <table>
 <tr><th>Item</th><th>Command</th><th>Expected</th></tr>
 <tr><td>Profiles exist</td><td><code>hermes profile list | grep aa- | wc -l</code></td><td>11</td></tr>
-<tr><td>Cron jobs active</td><td><code>hermes -p aa-orchestrator cron list | grep -c "Next run"</code></td><td>8</td></tr>
+<tr><td>Cron jobs active</td><td><code>hermes -p aa-orchestrator cron list | grep -c "Next run"</code></td><td>6 (8 total, 2 disabled)</td></tr>
 <tr><td>Gateway active</td><td><code>systemctl --user is-active hermes-gateway-*</code></td><td>active</td></tr>
 <tr><td>State directory ready</td><td><code>test -f {HOME}/autonomous-agent/GOAL.md && echo ok</code></td><td>ok</td></tr>
 <tr><td>Scripts executable</td><td><code>test -x {HOME}/.hermes/profiles/aa-orchestrator/scripts/state_context.sh && echo ok</code></td><td>ok</td></tr>

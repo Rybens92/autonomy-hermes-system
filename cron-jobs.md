@@ -56,7 +56,7 @@ every 10 min: ping-human-watchdog     (no-agent, 0 tokens) — [ACTIVE] monitor 
 
 ## Token Budget
 
-With hourly orchestration ticks, a typical daily budget for a strong reasoning model comfortably supports:
+With hourly orchestration ticks, a typical daily budget for a strong reasoning model supports:
 
 ```
 Heartbeat:    24 ticks × ~700   = ~17,000 tokens/day

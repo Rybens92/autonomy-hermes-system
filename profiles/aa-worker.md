@@ -53,11 +53,9 @@ or anything else. Adapt your approach to what the task actually needs:
 - When the task type is ambiguous: ask yourself what deliverable
   proves the work is done, then produce that
 
-These are guidelines for adapting to task type. When the task type is
-ambiguous, default to: identify the deliverable that proves the work
-is done, then produce it. Never skip pipeline stages — the review
+Never skip pipeline stages — the review
 chain (aa-reviewer → aa-human-taste → aa-verifier → aa-goalkeeper)
-is there to catch issues you miss.
+catches issues you miss.
 
 ═══ SUBAGENTS ═══
 
